@@ -1,28 +1,22 @@
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
+import type { Project } from '@shared/domain'
+import { ProjectMenu } from './features/projects/ProjectMenu'
+import { ProjectView } from './features/projects/ProjectView'
 
 /**
- * Platzhalter-Oberfläche für das Grundgerüst (Etappe 1).
- * Zeigt, dass React rendert und die typisierte IPC-Bridge zum Main-Prozess
- * funktioniert (App-Version wird über window.api geladen).
- * Der eigentliche Split-Screen folgt in späteren Etappen.
+ * Wurzel der UI. Verwaltet die einfache Navigation zwischen der
+ * Projekt-Übersicht (Etappe 3) und einem geöffneten Projekt. Der eigentliche
+ * Split-Screen mit PDF-Viewer folgt in Etappe 4; bis dahin zeigt die
+ * Projekt-Ansicht einen Platzhalter.
  */
 function App(): React.JSX.Element {
-  const [version, setVersion] = useState<string>('…')
+  const [openProject, setOpenProject] = useState<Project | null>(null)
 
-  useEffect(() => {
-    window.api
-      .getAppVersion()
-      .then(setVersion)
-      .catch(() => setVersion('unbekannt'))
-  }, [])
+  if (openProject) {
+    return <ProjectView project={openProject} onBack={() => setOpenProject(null)} />
+  }
 
-  return (
-    <main className="welcome">
-      <h1>KITeacher</h1>
-      <p>PDFs in seitenweise, verständliche KI-Erklärungen verwandeln.</p>
-      <p className="version">Grundgerüst läuft · Version {version}</p>
-    </main>
-  )
+  return <ProjectMenu onOpen={setOpenProject} />
 }
 
 export default App

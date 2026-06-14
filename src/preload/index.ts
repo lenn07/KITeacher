@@ -4,7 +4,14 @@ import { IpcChannels, type KiTeacherApi } from '@shared/ipc'
 
 // Implementierung der App-API, die dem Renderer kontrolliert freigegeben wird.
 const api: KiTeacherApi = {
-  getAppVersion: () => ipcRenderer.invoke(IpcChannels.appGetVersion)
+  getAppVersion: () => ipcRenderer.invoke(IpcChannels.appGetVersion),
+  projects: {
+    list: () => ipcRenderer.invoke(IpcChannels.projectsList),
+    import: () => ipcRenderer.invoke(IpcChannels.projectsImport),
+    rename: (id, name) => ipcRenderer.invoke(IpcChannels.projectsRename, id, name),
+    delete: (id) => ipcRenderer.invoke(IpcChannels.projectsDelete, id),
+    getById: (id) => ipcRenderer.invoke(IpcChannels.projectsGet, id)
+  }
 }
 
 // Nur über contextBridge freigeben, niemals direkten Node-/ipcRenderer-Zugriff
