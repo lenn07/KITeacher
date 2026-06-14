@@ -1,0 +1,64 @@
+/**
+ * Zentrale Domänentypen der App (Datenmodell aus CLAUDE.md).
+ *
+ * Diese Typen werden von Main (Repositories) und Renderer (UI) gemeinsam
+ * genutzt, damit beide Seiten dieselbe Vorstellung der Daten haben. Die
+ * Spaltennamen der Datenbank sind snake_case, hier in der TS-Welt camelCase –
+ * die Übersetzung passiert ausschließlich in den Repositories.
+ *
+ * Beziehung: Project → Page → ChatMessage.
+ */
+
+/** Ein importiertes PDF samt Metadaten. */
+export interface Project {
+  id: number
+  /** Anzeigename, Standard = PDF-Dateiname, vom Nutzer umbenennbar. */
+  name: string
+  /** Pfad zur PDF-Kopie im App-Datenordner. */
+  pdfPath: string
+  /** Anzahl Seiten des PDFs (0 bis bekannt). */
+  pageCount: number
+  /** ISO-8601-Zeitstempel der Erstellung. */
+  createdAt: string
+}
+
+/** Eine einzelne PDF-Seite mit – sobald erzeugt – ihrem KI-Erklärtext. */
+export interface Page {
+  id: number
+  projectId: number
+  /** 1-basierte Seitennummer im PDF. */
+  pageNumber: number
+  /** KI-Erklärtext, `null` solange noch nicht generiert (On-Demand-Caching). */
+  explanation: string | null
+  /** ISO-8601-Zeitstempel der Texterzeugung, `null` solange nicht generiert. */
+  generatedAt: string | null
+}
+
+/** Rolle einer Chat-Nachricht im seitenbezogenen Verlauf. */
+export type ChatRole = 'user' | 'assistant'
+
+/** Eine Nachricht im Chat-Verlauf einer Seite. */
+export interface ChatMessage {
+  id: number
+  pageId: number
+  role: ChatRole
+  content: string
+  /** ISO-8601-Zeitstempel. */
+  createdAt: string
+}
+
+// --- Eingabetypen (ohne von der DB vergebene Felder) ---------------------
+
+/** Daten zum Anlegen eines Projekts. */
+export interface NewProject {
+  name: string
+  pdfPath: string
+  pageCount: number
+}
+
+/** Daten zum Anlegen einer Chat-Nachricht. */
+export interface NewChatMessage {
+  pageId: number
+  role: ChatRole
+  content: string
+}

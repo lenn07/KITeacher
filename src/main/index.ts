@@ -2,6 +2,7 @@ import { app, shell, BrowserWindow, ipcMain } from 'electron'
 import { join } from 'path'
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
 import { IpcChannels } from '@shared/ipc'
+import { initDatabase, closeDatabase } from './db/database'
 
 function createWindow(): void {
   const mainWindow = new BrowserWindow({
@@ -42,6 +43,9 @@ function createWindow(): void {
 app.whenReady().then(() => {
   electronApp.setAppUserModelId('com.kiteacher.app')
 
+  // Lokale Persistenz vorbereiten: Ordner anlegen, DB öffnen, Migrationen einspielen.
+  initDatabase()
+
   app.on('browser-window-created', (_, window) => {
     optimizer.watchWindowShortcuts(window)
   })
@@ -60,4 +64,9 @@ app.on('window-all-closed', () => {
   if (process.platform !== 'darwin') {
     app.quit()
   }
+})
+
+// DB-Verbindung sauber schließen, bevor die App beendet wird.
+app.on('will-quit', () => {
+  closeDatabase()
 })
