@@ -6,7 +6,7 @@
  * Vertrag siehe `shared/ipc.ts`.
  */
 import { ipcMain } from 'electron'
-import { rmSync } from 'fs'
+import { readFileSync, rmSync } from 'fs'
 import { IpcChannels } from '@shared/ipc'
 import { projectRepository } from '../db/repositories'
 import { importPdfProject } from './projectImport'
@@ -23,6 +23,18 @@ export function registerProjectHandlers(): void {
   ipcMain.handle(IpcChannels.projectsRename, (_event, id: number, name: string) => {
     projectRepository.rename(id, name.trim())
     return projectRepository.getById(id)
+  })
+
+  ipcMain.handle(IpcChannels.projectsReadPdf, (_event, id: number) => {
+    const project = projectRepository.getById(id)
+    if (!project) throw new Error(`Projekt ${id} nicht gefunden.`)
+    // Buffer wird über IPC strukturiert kopiert und kommt im Renderer als
+    // Uint8Array an – genau das Format, das pdf.js erwartet.
+    return readFileSync(project.pdfPath)
+  })
+
+  ipcMain.handle(IpcChannels.projectsSetPageCount, (_event, id: number, pageCount: number) => {
+    projectRepository.setPageCount(id, pageCount)
   })
 
   ipcMain.handle(IpcChannels.projectsDelete, (_event, id: number) => {

@@ -174,7 +174,7 @@ body {
   flex-shrink: 0;
 }
 
-/* --- Geöffnetes Projekt (Platzhalter) -------------------------------------- */
+/* --- Geöffnetes Projekt (Split-Screen) ------------------------------------- */
 .project-view {
   height: 100%;
   display: flex;
@@ -187,6 +187,7 @@ body {
   gap: 1rem;
   padding: 1rem 1.5rem;
   border-bottom: 1px solid rgba(128, 128, 128, 0.25);
+  flex-shrink: 0;
 }
 
 .view-header h2 {
@@ -194,9 +195,65 @@ body {
   font-size: 1.2rem;
 }
 
-.view-body {
+.reader-error {
+  margin: 0.75rem 1.5rem 0;
+}
+
+/* Split-Screen: links PDF, rechts Erklärung. */
+.reader {
   flex: 1;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  min-height: 0;
+}
+
+.reader-pane {
+  min-height: 0;
   display: flex;
+  flex-direction: column;
+}
+
+.pdf-pane {
+  border-right: 1px solid rgba(128, 128, 128, 0.25);
+  background: rgba(128, 128, 128, 0.06);
+}
+
+/* Scrollbarer Bereich, in dem die Seite gerendert wird. */
+.pdf-canvas-wrap {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  padding: 1rem;
+}
+
+.pdf-canvas-wrap canvas {
+  max-width: 100%;
+  height: auto;
+  box-shadow: 0 1px 8px rgba(0, 0, 0, 0.2);
+  border-radius: 2px;
+}
+
+.pdf-nav {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  padding: 0.6rem 1rem;
+  border-top: 1px solid rgba(128, 128, 128, 0.25);
+  flex-shrink: 0;
+}
+
+.pdf-nav-status {
+  font-size: 0.85rem;
+  opacity: 0.7;
+  min-width: 8rem;
+  text-align: center;
+}
+
+.explain-pane {
   align-items: center;
   justify-content: center;
   padding: 2rem;

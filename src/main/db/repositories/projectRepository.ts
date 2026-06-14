@@ -54,6 +54,11 @@ export const projectRepository = {
     getDb().prepare('UPDATE projects SET name = ? WHERE id = ?').run(name, id)
   },
 
+  /** Trägt die tatsächliche Seitenzahl nach (beim Import noch 0). */
+  setPageCount(id: number, pageCount: number): void {
+    getDb().prepare('UPDATE projects SET page_count = ? WHERE id = ?').run(pageCount, id)
+  },
+
   /** Löscht ein Projekt; Seiten und Chats verschwinden per ON DELETE CASCADE. */
   delete(id: number): void {
     getDb().prepare('DELETE FROM projects WHERE id = ?').run(id)

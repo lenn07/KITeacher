@@ -10,7 +10,10 @@ const api: KiTeacherApi = {
     import: () => ipcRenderer.invoke(IpcChannels.projectsImport),
     rename: (id, name) => ipcRenderer.invoke(IpcChannels.projectsRename, id, name),
     delete: (id) => ipcRenderer.invoke(IpcChannels.projectsDelete, id),
-    getById: (id) => ipcRenderer.invoke(IpcChannels.projectsGet, id)
+    getById: (id) => ipcRenderer.invoke(IpcChannels.projectsGet, id),
+    readPdf: (id) => ipcRenderer.invoke(IpcChannels.projectsReadPdf, id),
+    setPageCount: (id, pageCount) =>
+      ipcRenderer.invoke(IpcChannels.projectsSetPageCount, id, pageCount)
   }
 }
 
