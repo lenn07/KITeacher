@@ -16,8 +16,6 @@ export interface AppSettings {
   model: string
   /** Erklär-Niveau (didaktische Tiefe). */
   explanationLevel: ExplanationLevel
-  /** Nächste Seite im Hintergrund vorausladen (Token-Komfort vs. -Sparen). */
-  prefetchEnabled: boolean
 }
 
 /**
@@ -31,8 +29,7 @@ export interface SettingsState extends AppSettings {
 /** Standardwerte für ein frisches Profil. */
 export const DEFAULT_SETTINGS: AppSettings = {
   model: 'claude-opus-4-8',
-  explanationLevel: 'standard',
-  prefetchEnabled: true
+  explanationLevel: 'standard'
 }
 
 /** Auswahl der Modelle in der UI (kuratiert, an einer Stelle pflegbar). */

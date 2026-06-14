@@ -271,21 +271,322 @@ body {
   text-align: center;
 }
 
-.explain-pane {
-  /* Inhalt füllt die Spalte; Statuszustände zentrieren sich selbst. */
+/* Rechte Spalte: ein durchgehender Chat (Erklärung = erste Nachricht). */
+.chat-pane {
   min-height: 0;
 }
 
-/* Lade-/Fehlerzustand mittig in der Spalte. */
-.explain-status {
+.spinner {
+  width: 1.6rem;
+  height: 1.6rem;
+  border: 2px solid rgba(128, 128, 128, 0.3);
+  border-top-color: rgba(128, 128, 128, 0.85);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* --- Chat pro Seite (Etappe 7) -------------------------------------------- */
+.chat {
   flex: 1;
+  min-height: 0;
   display: flex;
   flex-direction: column;
+}
+
+.chat-header {
+  flex-shrink: 0;
+  display: flex;
   align-items: center;
-  justify-content: center;
-  gap: 0.9rem;
-  padding: 2rem;
-  text-align: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  padding: 0.45rem 1rem;
+  border-bottom: 1px solid rgba(128, 128, 128, 0.2);
+}
+
+.chat-title {
+  font-size: 0.8rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  opacity: 0.6;
+}
+
+.chat-clear {
+  padding: 0.2rem 0.6rem;
+  font-size: 0.8rem;
+}
+
+/* Scrollbarer Nachrichten-Bereich. */
+.chat-scroll {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+  overscroll-behavior: contain;
+  padding: 0.9rem 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+/* Eine Nachricht: Nutzer als schmale Blase rechts, KI breit links. */
+.chat-msg {
+  display: flex;
+}
+
+/* Nutzerfragen kompakt und rechtsbündig. */
+.chat-msg-user {
+  align-self: flex-end;
+  justify-content: flex-end;
+  max-width: 85%;
+}
+
+/* KI-Nachrichten (Erklärung + Antworten) dürfen die volle Breite nutzen –
+   wichtig für lange Erklärungen mit Tabellen und abgesetzten Formeln. */
+.chat-msg-assistant {
+  align-self: stretch;
+}
+
+.chat-bubble {
+  /* min-width: 0 lässt breite Kinder (Tabellen, Code, Formeln) innerhalb der
+     Blase scrollen, statt sie aufzublähen. */
+  min-width: 0;
+  padding: 0.5rem 0.8rem;
+  border-radius: 12px;
+  line-height: 1.5;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+/* KI-Blasen füllen die Nachricht-Breite. */
+.chat-msg-assistant .chat-bubble {
+  flex: 1;
+}
+
+.chat-msg-user .chat-bubble {
+  background: #4a90d9;
+  color: #fff;
+  border-bottom-right-radius: 4px;
+}
+
+.chat-msg-assistant .chat-bubble {
+  background: rgba(128, 128, 128, 0.15);
+  border-bottom-left-radius: 4px;
+}
+
+/* KI-Texte (Erklärung wie Antworten) als Markdown. */
+.chat-markdown {
+  white-space: normal;
+}
+
+.chat-markdown > :first-child {
+  margin-top: 0;
+}
+
+.chat-markdown > :last-child {
+  margin-bottom: 0;
+}
+
+.chat-markdown h1,
+.chat-markdown h2,
+.chat-markdown h3,
+.chat-markdown h4,
+.chat-markdown h5,
+.chat-markdown h6 {
+  margin: 1rem 0 0.4rem;
+  line-height: 1.3;
+}
+
+.chat-markdown h1 {
+  font-size: 1.25rem;
+}
+.chat-markdown h2 {
+  font-size: 1.15rem;
+}
+.chat-markdown h3 {
+  font-size: 1.05rem;
+}
+.chat-markdown h4,
+.chat-markdown h5,
+.chat-markdown h6 {
+  font-size: 1rem;
+}
+
+.chat-markdown p {
+  margin: 0 0 0.5rem;
+}
+
+.chat-markdown ul,
+.chat-markdown ol {
+  margin: 0 0 0.5rem;
+  padding-left: 1.3rem;
+}
+
+.chat-markdown li {
+  margin: 0.15rem 0;
+}
+
+.chat-markdown li > ul,
+.chat-markdown li > ol {
+  margin: 0.15rem 0;
+}
+
+/* Trennlinie (---). */
+.chat-markdown hr {
+  border: none;
+  border-top: 1px solid rgba(128, 128, 128, 0.3);
+  margin: 1rem 0;
+}
+
+/* Links öffnen im Standardbrowser (siehe setWindowOpenHandler im Main). */
+.chat-markdown a {
+  color: #4a90d9;
+}
+
+/* Inline-Code und Code-Blöcke. */
+.chat-markdown code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 0.88em;
+  background: rgba(0, 0, 0, 0.12);
+  padding: 0.1rem 0.35rem;
+  border-radius: 4px;
+}
+
+.chat-markdown pre {
+  margin: 0 0 0.5rem;
+  padding: 0.7rem 0.9rem;
+  background: rgba(0, 0, 0, 0.14);
+  border-radius: 6px;
+  overflow-x: auto;
+}
+
+.chat-markdown pre code {
+  background: none;
+  padding: 0;
+  font-size: 0.85rem;
+}
+
+/* Zitate. */
+.chat-markdown blockquote {
+  margin: 0 0 0.5rem;
+  padding: 0.2rem 0 0.2rem 0.9rem;
+  border-left: 3px solid rgba(128, 128, 128, 0.4);
+  opacity: 0.85;
+}
+
+/* Tabellen (GFM): scrollen horizontal statt die Blase zu sprengen. */
+.chat-markdown table {
+  border-collapse: collapse;
+  margin: 0 0 0.5rem;
+  display: block;
+  overflow-x: auto;
+  max-width: 100%;
+}
+
+.chat-markdown th,
+.chat-markdown td {
+  border: 1px solid rgba(128, 128, 128, 0.35);
+  padding: 0.35rem 0.55rem;
+  text-align: left;
+}
+
+.chat-markdown th {
+  background: rgba(128, 128, 128, 0.18);
+}
+
+/* Abgesetzte Formeln dürfen horizontal scrollen. */
+.chat-markdown .katex-display {
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding: 0.2rem 0;
+}
+
+/* Aktionen unter der Erklärung (z. B. „Neu erklären"). */
+.chat-bubble-actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 0.5rem;
+}
+
+.chat-bubble-actions .btn {
+  padding: 0.2rem 0.6rem;
+  font-size: 0.8rem;
+}
+
+/* Aufforderungs-Blase: neue Seite noch nicht erklärt (mit „Seite erklären"). */
+.chat-bubble-cta {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.6rem;
+}
+
+.chat-bubble-cta p {
+  margin: 0;
+}
+
+/* Fehler-Blase der Erklärung (mit „Erneut versuchen"). */
+.chat-bubble-error {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.5rem;
+}
+
+.chat-bubble-error .error {
+  margin: 0;
+}
+
+/* „KI denkt nach…"-Blase. */
+.chat-typing {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.chat-typing .spinner {
+  width: 1rem;
+  height: 1rem;
+}
+
+.chat-error {
+  margin: 0 1rem 0.4rem;
+  font-size: 0.85rem;
+}
+
+/* Eingabezeile: Textfeld + Senden-Button. */
+.chat-input {
+  flex-shrink: 0;
+  display: flex;
+  gap: 0.5rem;
+  padding: 0.6rem 1rem 0.8rem;
+  border-top: 1px solid rgba(128, 128, 128, 0.2);
+}
+
+.chat-input textarea {
+  flex: 1;
+  resize: none;
+  font: inherit;
+  line-height: 1.4;
+  padding: 0.5rem 0.7rem;
+  border: 1px solid rgba(128, 128, 128, 0.35);
+  border-radius: 8px;
+  background: transparent;
+  color: inherit;
+}
+
+.chat-input textarea:focus {
+  outline: none;
+  border-color: #4a90d9;
+}
+
+.chat-input .btn {
+  align-self: flex-end;
 }
 
 .spinner {
@@ -512,25 +813,4 @@ body {
 
 .settings-status.fail {
   color: #c0392b;
-}
-
-.settings-toggle {
-  display: flex;
-  align-items: flex-start;
-  gap: 0.6rem;
-  cursor: pointer;
-}
-
-.settings-toggle input {
-  margin-top: 0.25rem;
-}
-
-.settings-toggle span {
-  display: flex;
-  flex-direction: column;
-  gap: 0.15rem;
-}
-
-.settings-toggle .settings-hint {
-  margin: 0;
 }

@@ -46,3 +46,53 @@ export const EXPLANATION_USER_PROMPT = 'Erkläre diese Seite.'
 
 /** Obergrenze der Antwort-Tokens für eine Seiten-Erklärung. */
 export const EXPLANATION_MAX_TOKENS = 2000
+
+// --- Chat pro Seite (Etappe 7) -------------------------------------------
+
+/** Baut den System-Prompt für den seitenbezogenen Chat passend zum Niveau. */
+export function buildChatSystemPrompt(level: ExplanationLevel): string {
+  return [
+    'Du bist ein geduldiger Lehrer und beantwortest Rückfragen zu einer einzelnen',
+    'Lehrbuch-/Skript-Seite. Du bekommst die Seite als Bild und einen bereits',
+    'erstellten Erklärtext dazu als Kontext. Beziehe dich auf genau diese Seite und',
+    'beantworte die Fragen der lernenden Person konkret und hilfreich.',
+    '',
+    LEVEL_GUIDANCE[level],
+    '',
+    'Halte dich an den Inhalt der Seite. Geht eine Frage darüber hinaus, darfst du',
+    'das nötige Hintergrundwissen ergänzen, weise aber darauf hin, dass es über die',
+    'Seite hinausgeht. Fasse dich angemessen kurz – beantworte die Frage, ohne die',
+    'ganze Seite erneut zu erklären.',
+    'Antworte ausschließlich auf Deutsch. Nutze gerne Markdown (Aufzählungen,',
+    '**Hervorhebungen**, Tabellen). Mathematische Formeln IMMER als LaTeX mit',
+    '$-Begrenzern setzen ($im Fließtext$, $$abgesetzt$$), nicht \\( \\) oder \\[ \\].'
+  ].join('\n')
+}
+
+/**
+ * Baut den Kontext-Text (begleitet das Seitenbild im ersten Turn), der der KI
+ * den vorhandenen Erklärtext mitgibt.
+ */
+export function buildChatContextText(explanation: string | null): string {
+  if (!explanation) {
+    return (
+      'Hier ist die aktuelle Seite als Bild. Für diese Seite wurde noch kein ' +
+      'Erklärtext erzeugt – beantworte die Rückfragen direkt anhand des Bildes.'
+    )
+  }
+  return [
+    'Hier ist die aktuelle Seite als Bild, dazu der bereits erstellte Erklärtext',
+    'als Kontext für die folgenden Rückfragen:',
+    '',
+    '---',
+    explanation,
+    '---'
+  ].join('\n')
+}
+
+/** Bestätigung der KI auf den Kontext-Turn (hält den Verlauf für das Modell sauber). */
+export const CHAT_CONTEXT_ACK =
+  'Alles klar, ich habe die Seite und den Erklärtext vor mir. Stell mir gerne deine Fragen dazu.'
+
+/** Obergrenze der Antwort-Tokens für eine Chat-Antwort. */
+export const CHAT_MAX_TOKENS = 1500

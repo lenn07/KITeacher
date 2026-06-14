@@ -16,13 +16,12 @@ Claude API-Key.
 - **Split-Screen:** links PDF mit Vor/Zurück-Navigation, rechts Erklärtext zur aktuellen Seite.
 - **KI-Erklärung:** aktuelle Seite wird als **Bild** an Claude (Vision) geschickt → didaktischer
   Erklärtext. So werden auch Diagramme, Formeln und Layout erfasst.
-- **On-Demand + Caching:** Text wird erst beim Öffnen einer Seite erzeugt und lokal
-  gespeichert. Beim Wiederöffnen kein erneuter Request (Token-Sparen).
-- **Prefetching:** nächste Seite (n+1) wird im Hintergrund vorausgeladen. Debounced,
-  abbrechbar bei schnellem Klicken, in den Einstellungen abschaltbar (Standard: an).
+- **On-Demand + Caching:** Text wird nur auf Knopfdruck erzeugt (kein automatisches
+  Generieren beim Öffnen oder im Voraus) und lokal gespeichert. Beim Wiederöffnen
+  kein erneuter Request (Token-Sparen).
 - **Chat pro Seite:** Rückfragen an die KI mit Seitenbild + Erklärtext als Kontext.
   Verlauf wird pro Seite gespeichert.
-- **Einstellungen:** API-Key (sicher), Modellwahl, Erklär-Niveau, Prefetch-Schalter.
+- **Einstellungen:** API-Key (sicher), Modellwahl, Erklär-Niveau.
 
 ## Tech-Stack
 

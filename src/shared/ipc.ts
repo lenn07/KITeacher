@@ -6,10 +6,13 @@
  * garantiert zusammenpassen. Neue Features ergänzen hier ihre Kanäle.
  */
 import type {
+  ChatMessage,
+  ChatResult,
   ExplanationResult,
   GenerateExplanationInput,
   Page,
-  Project
+  Project,
+  SendChatMessageInput
 } from './domain'
 import type { AppSettings, ConnectionTestResult, SettingsState } from './settings'
 
@@ -29,7 +32,10 @@ export const IpcChannels = {
   settingsClearApiKey: 'settings:clearApiKey',
   settingsTestConnection: 'settings:testConnection',
   pagesGet: 'pages:get',
-  pagesGenerateExplanation: 'pages:generateExplanation'
+  pagesGenerateExplanation: 'pages:generateExplanation',
+  chatList: 'chat:list',
+  chatSend: 'chat:send',
+  chatClear: 'chat:clear'
 } as const
 
 /** API rund um Projekte (Übersicht, Import, Umbenennen, Öffnen, Löschen). */
@@ -102,6 +108,26 @@ export interface PagesApi {
 }
 
 /**
+ * API rund um den seitenbezogenen Chat (Etappe 7).
+ *
+ * Rückfragen an die KI mit Seitenbild + Erklärtext als Kontext. Der Verlauf wird
+ * pro Seite gespeichert und beim Öffnen der Seite wieder geladen.
+ */
+export interface ChatApi {
+  /** Gespeicherter Verlauf einer Seite (leer, falls noch keiner existiert). */
+  list: (projectId: number, pageNumber: number) => Promise<ChatMessage[]>
+  /**
+   * Schickt eine Rückfrage an die KI (mit Bild + Erklärtext als Kontext) und
+   * liefert den vollständigen aktualisierten Verlauf. Bei Fehlern (kein Key,
+   * API-Problem) ein Ergebnis mit deutscher Begründung statt zu werfen; in dem
+   * Fall wird nichts gespeichert.
+   */
+  send: (input: SendChatMessageInput) => Promise<ChatResult>
+  /** Löscht den gesamten Verlauf einer Seite. */
+  clear: (projectId: number, pageNumber: number) => Promise<void>
+}
+
+/**
  * Die API, die im Renderer unter `window.api` zur Verfügung steht.
  * Wird vom Preload-Skript implementiert und hier nur typisiert.
  */
@@ -114,4 +140,6 @@ export interface KiTeacherApi {
   settings: SettingsApi
   /** Seiten-Erklärungen mit Caching (siehe PagesApi). */
   pages: PagesApi
+  /** Seitenbezogener Chat (siehe ChatApi). */
+  chat: ChatApi
 }
