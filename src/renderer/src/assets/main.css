@@ -209,6 +209,9 @@ body {
 
 .reader-pane {
   min-height: 0;
+  /* min-width: 0 verhindert, dass eine vergrößerte (gezoomte) Seite die Spalte
+     aufbläht und damit den Trenner verschiebt – stattdessen wird gescrollt. */
+  min-width: 0;
   display: flex;
   flex-direction: column;
 }
@@ -223,15 +226,24 @@ body {
   flex: 1;
   min-height: 0;
   overflow: auto;
+  /* Scrollen bleibt im PDF-Bereich – kein Verschieben/Mitscrollen des Layouts. */
+  overscroll-behavior: contain;
   display: flex;
-  justify-content: center;
-  align-items: flex-start;
+  /* `safe center` zentriert, ohne beim Zoom den linken/oberen Rand abzuschneiden. */
+  justify-content: safe center;
+  align-items: safe flex-start;
   padding: 1rem;
 }
 
+/* Hält die Layout-/Scrollfläche in Live-Zoom-Größe; das Canvas darin wird per
+   CSS-transform passend skaliert. So bleibt Pannen auch während des Zooms möglich. */
+.pdf-sizer {
+  position: relative;
+  flex: none;
+}
+
 .pdf-canvas-wrap canvas {
-  max-width: 100%;
-  height: auto;
+  display: block;
   box-shadow: 0 1px 8px rgba(0, 0, 0, 0.2);
   border-radius: 2px;
 }

@@ -21,7 +21,8 @@ Status-Legende: ⬜ offen · 🟡 läuft · ✅ fertig
    Build & Typecheck grün.
 4. ✅ **Split-Screen + PDF-Viewer** – Split-Screen (links PDF, rechts Erklär-Platz),
    PDF-Anzeige via `pdf.js` auf Canvas (an Containerbreite skaliert, Geräte-Pixeldichte),
-   Seiten-Navigation (vor/zurück). PDF-Bytes über IPC (`projects:readPdf`), kein
+   Seiten-Navigation (vor/zurück), Zoom per Pinch-Geste (Trackpad) bzw. Strg/Cmd+Scrollrad
+   (0,25×–5×, neu gerendert → bleibt scharf). PDF-Bytes über IPC (`projects:readPdf`), kein
    Datei-Zugriff im Renderer. Echte Seitenzahl wird beim Laden ermittelt und – falls
    beim Import noch 0 – persistent nachgetragen (`projects:setPageCount`).
    Feature-Ordner `renderer/.../features/reader/`. Build & Typecheck grün.
