@@ -62,3 +62,37 @@ export interface NewChatMessage {
   role: ChatRole
   content: string
 }
+
+// --- KI-Erklärung (Etappe 6) ---------------------------------------------
+
+/** Unterstützte Bildformate für die Vision-Anfrage. */
+export type ImageMediaType = 'image/png' | 'image/jpeg'
+
+/**
+ * Eine als Base64-Bild gerenderte PDF-Seite. Der Renderer erzeugt sie mit
+ * pdf.js und reicht sie über IPC an den Main-Prozess, der das Bild an Claude
+ * (Vision) schickt – so werden auch Diagramme, Formeln und Layout erfasst.
+ */
+export interface PageImage {
+  base64: string
+  mediaType: ImageMediaType
+}
+
+/** Eingabe zum Erzeugen (oder gecacht Abrufen) eines Erklärtexts zu einer Seite. */
+export interface GenerateExplanationInput {
+  projectId: number
+  pageNumber: number
+  /** Seite als Bild (vom Renderer mit pdf.js gerendert). */
+  image: PageImage
+  /** Cache umgehen und neu generieren (z. B. „neu erklären"-Button). */
+  force?: boolean
+}
+
+/**
+ * Ergebnis einer Erklär-Anfrage. Wie beim Verbindungstest wird bei Misserfolg
+ * eine deutsche Meldung zurückgegeben statt zu werfen (kein Key, API-Fehler),
+ * damit die UI sie direkt anzeigen kann.
+ */
+export type ExplanationResult =
+  | { ok: true; page: Page }
+  | { ok: false; message: string }

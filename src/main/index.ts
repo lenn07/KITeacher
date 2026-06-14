@@ -5,6 +5,7 @@ import { IpcChannels } from '@shared/ipc'
 import { initDatabase, closeDatabase } from './db/database'
 import { registerProjectHandlers } from './projects/projectHandlers'
 import { registerSettingsHandlers } from './settings/settingsHandlers'
+import { registerPageHandlers } from './pages/pageHandlers'
 
 function createWindow(): void {
   const mainWindow = new BrowserWindow({
@@ -56,6 +57,7 @@ app.whenReady().then(() => {
   ipcMain.handle(IpcChannels.appGetVersion, () => app.getVersion())
   registerProjectHandlers()
   registerSettingsHandlers()
+  registerPageHandlers()
 
   createWindow()
 

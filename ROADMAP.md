@@ -32,7 +32,15 @@ Status-Legende: ⬜ offen · 🟡 läuft · ✅ fertig
    tokensparend), Modellwahl, Erklär-Niveau und Prefetch-Schalter. KI hinter dem
    `AIProvider`-Interface (`AnthropicProvider`). IPC-Kanäle `settings:*`, Feature-Ordner
    `main/settings/`, `main/ai/` & `renderer/.../features/settings/`. Build & Typecheck grün.
-6. ⬜ **KI-Erklärung (Vision)** – Seite→Bild→Claude, Erklärtext rechts, Caching + Prefetching.
+6. ✅ **KI-Erklärung (Vision)** – Aktuelle Seite wird im Renderer mit pdf.js zu einem
+   PNG gerendert und über IPC (`pages:generateExplanation`) an Claude (Vision) geschickt →
+   didaktischer Erklärtext rechts. On-Demand + Caching: Text wird lokal gespeichert
+   (`pages`-Tabelle), beim Wiederöffnen kein neuer Request (`pages:get` prüft den Cache).
+   Prefetching der Folgeseite (n+1) im Hintergrund, entprellt/abbrechbar, in den
+   Einstellungen abschaltbar. „Neu erklären"-Button umgeht den Cache. Prompts zentral in
+   `main/ai/prompts.ts` (Niveau-abhängig), `AIProvider.explainPage` im Interface.
+   Feature-Ordner `main/pages/` & Renderer `features/reader/` (Pane + Hook + Bild-Renderer).
+   Build & Typecheck grün.
 7. ⬜ **Chat pro Seite** – Rückfragen mit Kontext, Verlauf gespeichert.
 8. ⬜ **Feinschliff** – Ladezustände, Fehlerbehandlung (kein Key / API-Fehler), UI-Politur.
 
@@ -45,8 +53,24 @@ Status-Legende: ⬜ offen · 🟡 läuft · ✅ fertig
   fehl (keine Klartext-Fallback-Ablage).
 - **Verbindungstest:** `models.retrieve(model)` statt einer Chat-Anfrage – prüft Key
   **und** Modellverfügbarkeit, ohne Tokens zu verbrauchen.
-- **AIProvider:** In Etappe 5 nur `testConnection`; die Methoden für Seiten-Erklärung
-  und Chat kommen in Etappe 6 dazu (Interface in `main/ai/aiProvider.ts`).
+- **AIProvider:** `testConnection` (Etappe 5) + `explainPage` (Etappe 6, Vision) im
+  Interface `main/ai/aiProvider.ts`. Die Chat-Methode kommt in Etappe 7 dazu. Die
+  Fehlerübersetzung (SDK → deutsche Meldung) liegt gemeinsam in `main/ai/errors.ts`.
+
+- **Seitenbild für Vision:** Das Bild rendert der Renderer mit pdf.js
+  (`features/reader/pdfImage.ts`, Ziel-Breite ~1568 px, PNG/Base64) – getrennt vom
+  zoomabhängigen Anzeige-Renderer. Geladene PDF-Dokumente werden dort pro Projekt
+  gecacht (eigener Handle, beim Schließen via `releaseDocument` freigegeben); der
+  Anzeige-Viewer lädt sein Dokument weiterhin selbst. Bewusste, kleine Duplizierung
+  zugunsten klarer Trennung – Speicher unkritisch für die lokale App.
+
+- **Caching/Prefetch:** Der teure Vision-Aufruf passiert nur bei Cache-Miss (oder
+  `force` über „Neu erklären"). Prefetch der Seite n+1 ist im Renderer entprellt
+  (600 ms) und bricht bei schnellem Durchklicken ab. Zusätzlich dedupliziert der
+  Main-Prozess gleichzeitige Anfragen pro Seite (`projectId:pageNumber`): Läuft
+  schon eine Erzeugung, hängt sich jeder weitere Aufruf an deren Ergebnis an –
+  dieselbe Seite kann so unter keinen Umständen doppelt abgerechnet werden (auch
+  nicht im Prefetch-Rennen zwischen Hintergrundladen und Aufschlagen der Seite).
 
 
 - **Seitenzahl beim Import:** Wird mit `0` angelegt; die echte Seitenzahl ermittelt
