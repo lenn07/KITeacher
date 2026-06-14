@@ -1,0 +1,64 @@
+# KITeacher
+
+Lokale Desktop-App, die PDFs in seitenweise, verständliche KI-Erklärungen verwandelt.
+Split-Screen: links das PDF, rechts ein KI-Erklärtext zur aktuellen Seite + ein Chat
+für Rückfragen. Alles läuft lokal, kein Login. Jeder Nutzer hinterlegt seinen eigenen
+Claude API-Key.
+
+> **Hinweis für neue Chats:** Diese Datei beschreibt *was* die App ist und *wie* sie
+> gebaut wird. Den aktuellen Fortschritt und die nächsten Schritte findest du in
+> [ROADMAP.md](ROADMAP.md). Beide Dateien werden während der Arbeit aktuell gehalten.
+
+## Kernfunktionen
+
+- **Projekt-Menü:** Liste aller Projekte (umbenennbarer Name, Standard = PDF-Dateiname).
+  Öffnen / umbenennen / löschen. Frühere Projekte jederzeit wieder aufrufbar.
+- **Split-Screen:** links PDF mit Vor/Zurück-Navigation, rechts Erklärtext zur aktuellen Seite.
+- **KI-Erklärung:** aktuelle Seite wird als **Bild** an Claude (Vision) geschickt → didaktischer
+  Erklärtext. So werden auch Diagramme, Formeln und Layout erfasst.
+- **On-Demand + Caching:** Text wird erst beim Öffnen einer Seite erzeugt und lokal
+  gespeichert. Beim Wiederöffnen kein erneuter Request (Token-Sparen).
+- **Prefetching:** nächste Seite (n+1) wird im Hintergrund vorausgeladen. Debounced,
+  abbrechbar bei schnellem Klicken, in den Einstellungen abschaltbar (Standard: an).
+- **Chat pro Seite:** Rückfragen an die KI mit Seitenbild + Erklärtext als Kontext.
+  Verlauf wird pro Seite gespeichert.
+- **Einstellungen:** API-Key (sicher), Modellwahl, Erklär-Niveau, Prefetch-Schalter.
+
+## Tech-Stack
+
+| Bereich   | Wahl                                                      |
+|-----------|-----------------------------------------------------------|
+| Framework | Electron + React + TypeScript + Vite                      |
+| PDF       | `pdf.js` (Anzeige + Seite→Bild für Vision)                |
+| KI        | `@anthropic-ai/sdk`, Vision, Modell konfigurierbar        |
+| Speicher  | SQLite (Projekte/Seiten/Texte/Chats) + PDFs im App-Datenordner |
+| Sicherheit| API-Key im OS-Keychain via Electron `safeStorage`, nie Klartext |
+
+## Datenmodell
+
+- `Project` (id, name, pdf_pfad, seitenanzahl, erstellt_am)
+- `Page` (id, project_id, seitennummer, erklärtext, generiert_am)
+- `ChatMessage` (id, page_id, rolle, inhalt, zeitstempel)
+
+Beziehung: `Project` → `Page` → `ChatMessage`.
+
+## Architektur-Prinzipien (wichtig: auf Weiterentwickelbarkeit ausgelegt)
+
+- **Schichten-Trennung:** UI (React) ↔ App-Logik ↔ Datenzugriff (Repository-Pattern)
+  ↔ KI-Service. Jede Schicht für sich austauschbar.
+- **KI hinter einem Interface:** ein `AIProvider`-Interface, damit später ein anderes
+  Modell / Provider / lokales LLM ohne Umbau eingesetzt werden kann.
+- **Datenbank über Migrationen:** Schema-Änderungen versioniert, bestehende Projekte
+  bleiben erhalten.
+- **Electron sauber getrennt:** Main-Prozess (Dateien/DB/KI) vs. Renderer (UI) über
+  klar definierte, typisierte IPC-Schnittstellen. Kein direkter Node-Zugriff im Renderer.
+- **TypeScript durchgängig**, zentrale Typen, Konfig/Prompts an einer Stelle ausgelagert
+  (Prompts editierbar, nicht im Code verstreut).
+- **Modulare Feature-Ordner** mit kurzer Doku, damit man schnell reinkommt.
+
+## Konventionen
+
+- Sprache der App und der KI-Erklärtexte: **Deutsch**.
+- Erklär-Stil: didaktisch / „erkläre es einfach", Niveau in Einstellungen anpassbar.
+- Diese Datei (`CLAUDE.md`) schlank und stabil halten (das „Was & Wie").
+  Fortschritt gehört in `ROADMAP.md`.
