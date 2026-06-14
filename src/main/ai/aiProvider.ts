@@ -5,14 +5,22 @@
  * gegen ein SDK. So lässt sich später ein anderes Modell, ein anderer Provider
  * oder ein lokales LLM einsetzen, ohne die übrigen Schichten anzufassen.
  *
- * In Etappe 5 braucht das Interface nur den Verbindungstest; die Methoden für
- * Seiten-Erklärung und Chat kommen in Etappe 6 dazu.
+ * Etappe 5 brachte den Verbindungstest, Etappe 6 die Seiten-Erklärung (Vision);
+ * der Chat kommt in Etappe 7 dazu.
  */
+import type { PageImage } from '@shared/domain'
+import type { ExplanationLevel } from '@shared/settings'
 
 /** Zugangsdaten für einen einzelnen KI-Aufruf. */
 export interface AIProviderConfig {
   apiKey: string
   model: string
+}
+
+/** Eingabe für die Seiten-Erklärung: das Seitenbild und das gewünschte Niveau. */
+export interface ExplainPageOptions {
+  image: PageImage
+  level: ExplanationLevel
 }
 
 export interface AIProvider {
@@ -22,4 +30,10 @@ export interface AIProvider {
    * menschenlesbare Meldung passiert in der aufrufenden Schicht.
    */
   testConnection(config: AIProviderConfig): Promise<void>
+
+  /**
+   * Erzeugt aus dem Seitenbild einen didaktischen Erklärtext (Vision). Wirft bei
+   * Misserfolg; die aufrufende Schicht übersetzt den Fehler und cacht das Ergebnis.
+   */
+  explainPage(config: AIProviderConfig, options: ExplainPageOptions): Promise<string>
 }

@@ -22,6 +22,12 @@ const api: KiTeacherApi = {
     clearApiKey: () => ipcRenderer.invoke(IpcChannels.settingsClearApiKey),
     testConnection: (model, apiKey) =>
       ipcRenderer.invoke(IpcChannels.settingsTestConnection, model, apiKey)
+  },
+  pages: {
+    get: (projectId, pageNumber) =>
+      ipcRenderer.invoke(IpcChannels.pagesGet, projectId, pageNumber),
+    generateExplanation: (input) =>
+      ipcRenderer.invoke(IpcChannels.pagesGenerateExplanation, input)
   }
 }
 

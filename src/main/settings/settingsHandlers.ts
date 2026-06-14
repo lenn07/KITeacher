@@ -8,31 +8,12 @@ import { ipcMain } from 'electron'
 import { IpcChannels } from '@shared/ipc'
 import type { AppSettings, ConnectionTestResult, SettingsState } from '@shared/settings'
 import { settingsStore } from './settingsStore'
-import { Anthropic, anthropicProvider } from '../ai/anthropicProvider'
+import { anthropicProvider } from '../ai/anthropicProvider'
+import { describeAiError } from '../ai/errors'
 
 /** Aktuellen Stand für den Renderer zusammenstellen (ohne den Key selbst). */
 function currentState(): SettingsState {
   return { ...settingsStore.getSettings(), hasApiKey: settingsStore.hasApiKey() }
-}
-
-/** Provider-/SDK-Fehler in eine verständliche deutsche Meldung übersetzen. */
-function describeError(error: unknown): string {
-  if (error instanceof Anthropic.AuthenticationError) {
-    return 'Der API-Key ist ungültig. Bitte prüfe deine Eingabe.'
-  }
-  if (error instanceof Anthropic.PermissionDeniedError) {
-    return 'Der API-Key hat keine Berechtigung für dieses Modell.'
-  }
-  if (error instanceof Anthropic.NotFoundError) {
-    return 'Das gewählte Modell ist mit diesem Key nicht verfügbar.'
-  }
-  if (error instanceof Anthropic.RateLimitError) {
-    return 'Zu viele Anfragen – bitte kurz warten und erneut versuchen.'
-  }
-  if (error instanceof Anthropic.APIConnectionError) {
-    return 'Keine Verbindung zur Claude-API. Ist das Internet erreichbar?'
-  }
-  return 'Verbindung fehlgeschlagen. Bitte später erneut versuchen.'
 }
 
 export function registerSettingsHandlers(): void {
@@ -62,7 +43,7 @@ export function registerSettingsHandlers(): void {
         await anthropicProvider.testConnection({ apiKey: key, model })
         return { ok: true }
       } catch (error) {
-        return { ok: false, message: describeError(error) }
+        return { ok: false, message: describeAiError(error) }
       }
     }
   )

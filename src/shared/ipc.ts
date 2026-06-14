@@ -5,7 +5,12 @@
  * aufrufen darf. Main und Renderer teilen sich diese Typen, damit beide Seiten
  * garantiert zusammenpassen. Neue Features ergänzen hier ihre Kanäle.
  */
-import type { Project } from './domain'
+import type {
+  ExplanationResult,
+  GenerateExplanationInput,
+  Page,
+  Project
+} from './domain'
 import type { AppSettings, ConnectionTestResult, SettingsState } from './settings'
 
 /** Kanal-Namen an einer Stelle, um Tippfehler zwischen Main/Preload zu vermeiden. */
@@ -22,7 +27,9 @@ export const IpcChannels = {
   settingsSave: 'settings:save',
   settingsSetApiKey: 'settings:setApiKey',
   settingsClearApiKey: 'settings:clearApiKey',
-  settingsTestConnection: 'settings:testConnection'
+  settingsTestConnection: 'settings:testConnection',
+  pagesGet: 'pages:get',
+  pagesGenerateExplanation: 'pages:generateExplanation'
 } as const
 
 /** API rund um Projekte (Übersicht, Import, Umbenennen, Öffnen, Löschen). */
@@ -77,6 +84,24 @@ export interface SettingsApi {
 }
 
 /**
+ * API rund um Seiten und ihren KI-Erklärtext (Etappe 6).
+ *
+ * Erklärungen werden on-demand erzeugt und lokal gecacht. Der teure Vision-Aufruf
+ * passiert nur, wenn noch kein Text vorliegt – sonst wird der gespeicherte
+ * geliefert (Token-Sparen). Das Seitenbild rendert der Renderer mit pdf.js.
+ */
+export interface PagesApi {
+  /** Gecachte Seite oder `null`, ohne KI-Aufruf (zum Prüfen, ob Text vorliegt). */
+  get: (projectId: number, pageNumber: number) => Promise<Page | null>
+  /**
+   * Liefert den (gecachten) Erklärtext oder erzeugt ihn aus dem Seitenbild.
+   * Gibt bei Fehlern (kein Key, API-Problem) ein Ergebnis mit deutscher
+   * Begründung zurück, statt zu werfen.
+   */
+  generateExplanation: (input: GenerateExplanationInput) => Promise<ExplanationResult>
+}
+
+/**
  * Die API, die im Renderer unter `window.api` zur Verfügung steht.
  * Wird vom Preload-Skript implementiert und hier nur typisiert.
  */
@@ -87,4 +112,6 @@ export interface KiTeacherApi {
   projects: ProjectsApi
   /** Einstellungen & API-Key (siehe SettingsApi). */
   settings: SettingsApi
+  /** Seiten-Erklärungen mit Caching (siehe PagesApi). */
+  pages: PagesApi
 }
