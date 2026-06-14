@@ -1,13 +1,13 @@
 /**
  * Einstellungen (Etappe 5).
  *
- * API-Key (sicher gespeichert, Verbindungstest), Modellwahl, Erklär-Niveau und
- * Prefetch-Schalter. Sämtlicher Zugriff läuft über `window.api.settings` – die
- * UI sieht den Key nie im Klartext, nur das `hasApiKey`-Flag.
+ * API-Key (sicher gespeichert, Verbindungstest), Modellwahl und Erklär-Niveau.
+ * Sämtlicher Zugriff läuft über `window.api.settings` – die UI sieht den Key nie
+ * im Klartext, nur das `hasApiKey`-Flag.
  *
- * Modell/Niveau/Prefetch werden direkt bei Änderung gespeichert; der API-Key
- * hat eigene Aktionen (Speichern/Entfernen/Testen), weil er bewusst eingegeben
- * wird und nicht zurückgelesen werden kann.
+ * Modell/Niveau werden direkt bei Änderung gespeichert; der API-Key hat eigene
+ * Aktionen (Speichern/Entfernen/Testen), weil er bewusst eingegeben wird und
+ * nicht zurückgelesen werden kann.
  */
 import { useEffect, useState } from 'react'
 import type {
@@ -199,21 +199,6 @@ export function SettingsView({ onBack }: SettingsViewProps): React.JSX.Element {
         </select>
       </section>
 
-      <section className="settings-section">
-        <label className="settings-toggle">
-          <input
-            type="checkbox"
-            checked={settings.prefetchEnabled}
-            onChange={(e) => patch({ prefetchEnabled: e.target.checked })}
-          />
-          <span>
-            <strong>Prefetching</strong>
-            <span className="muted settings-hint">
-              Nächste Seite im Hintergrund vorausladen (schneller, etwas mehr Tokens).
-            </span>
-          </span>
-        </label>
-      </section>
     </main>
   )
 }

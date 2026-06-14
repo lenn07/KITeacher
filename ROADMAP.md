@@ -29,16 +29,18 @@ Status-Legende: ⬜ offen · 🟡 läuft · ✅ fertig
 5. ✅ **Einstellungen + API-Key** – Einstellungsansicht (über die Übersicht erreichbar):
    API-Key-Eingabe mit sicherer Speicherung im OS-Keychain (`safeStorage`, nie Klartext,
    getrennt von `settings.json`), Verbindungstest gegen die Claude-API (`models.retrieve`,
-   tokensparend), Modellwahl, Erklär-Niveau und Prefetch-Schalter. KI hinter dem
+   tokensparend), Modellwahl und Erklär-Niveau. KI hinter dem
    `AIProvider`-Interface (`AnthropicProvider`). IPC-Kanäle `settings:*`, Feature-Ordner
    `main/settings/`, `main/ai/` & `renderer/.../features/settings/`. Build & Typecheck grün.
+   (Der ursprüngliche Prefetch-Schalter wurde in Etappe 7 entfernt – siehe dort.)
 6. ✅ **KI-Erklärung (Vision)** – Aktuelle Seite wird im Renderer mit pdf.js zu einem
    PNG gerendert und über IPC (`pages:generateExplanation`) an Claude (Vision) geschickt →
    didaktischer Erklärtext rechts. On-Demand + Caching: Text wird lokal gespeichert
    (`pages`-Tabelle), beim Wiederöffnen kein neuer Request (`pages:get` prüft den Cache).
-   Prefetching der Folgeseite (n+1) im Hintergrund, entprellt/abbrechbar, in den
-   Einstellungen abschaltbar. „Neu erklären"-Button umgeht den Cache. Prompts zentral in
+   „Neu erklären"-Button umgeht den Cache. Prompts zentral in
    `main/ai/prompts.ts` (Niveau-abhängig), `AIProvider.explainPage` im Interface.
+   (Das anfängliche Auto-Generieren beim Öffnen und das Prefetching wurden in
+   Etappe 7 durch manuelles Erklären per Knopf ersetzt – siehe dort.)
    Feature-Ordner `main/pages/` & Renderer `features/reader/` (Pane + Hook + Bild-Renderer).
    Build & Typecheck grün.
 7. ✅ **Chat pro Seite** – Die ganze rechte Spalte ist EIN durchgehender Chat: Die
@@ -47,19 +49,22 @@ Status-Legende: ⬜ offen · 🟡 läuft · ✅ fertig
    `MarkdownView`). Rückfragen gehen mit Seitenbild + Erklärtext als Kontext an die
    KI (Vision); Enter sendet / Shift+Enter neue Zeile, „Neu erklären" an der ersten
    Blase, „Rückfragen löschen" im Kopf. Die Erklärung bleibt technisch getrennt
-   gecacht (`pages`-Tabelle, On-Demand/Prefetch unverändert), die Rückfragen liegen
-   in `chat_messages` und werden beim Öffnen der Seite geladen. Frage und Antwort
-   werden erst nach erfolgreicher KI-Antwort gespeichert – bei Fehler (kein Key /
-   API-Problem) bleibt der Verlauf unverändert. `AIProvider.chat` im Interface,
-   Prompts zentral in `main/ai/prompts.ts`. IPC-Kanäle `chat:*`, Feature-Ordner
-   `main/chat/` & Renderer `features/reader/` (Pane + Hook + `MarkdownView`).
-   Build & Typecheck grün.
+   gecacht (`pages`-Tabelle), die Rückfragen liegen in `chat_messages` und werden
+   beim Öffnen der Seite geladen. Frage und Antwort werden erst nach erfolgreicher
+   KI-Antwort gespeichert – bei Fehler (kein Key / API-Problem) bleibt der Verlauf
+   unverändert. `AIProvider.chat` im Interface, Prompts zentral in
+   `main/ai/prompts.ts`. IPC-Kanäle `chat:*`, Feature-Ordner `main/chat/` & Renderer
+   `features/reader/` (Pane + Hook + `MarkdownView`).
+   **Außerdem:** Erklärungen werden nicht mehr automatisch erzeugt (weder beim
+   Öffnen noch im Voraus) – nur noch per „Seite erklären"-Knopf. Das Prefetching
+   und der zugehörige Einstellungs-Schalter wurden komplett entfernt
+   (`AppSettings` ohne `prefetchEnabled`). Build & Typecheck grün.
 8. ⬜ **Feinschliff** – Ladezustände, Fehlerbehandlung (kein Key / API-Fehler), UI-Politur.
 
 ## Notizen / Abweichungen
 
 - **API-Key-Ablage:** Verschlüsselt via `safeStorage` in `apikey.bin` (Schlüssel im
-  OS-Keychain). Bewusst getrennt von `settings.json` (Modell/Niveau/Prefetch) und ohne
+  OS-Keychain). Bewusst getrennt von `settings.json` (Modell/Niveau) und ohne
   IPC-Rückkanal – der Key verlässt den Main-Prozess nie im Klartext; die UI kennt nur
   das `hasApiKey`-Flag. Ist `safeStorage` nicht verfügbar, schlägt das Speichern bewusst
   fehl (keine Klartext-Fallback-Ablage).
@@ -84,13 +89,19 @@ Status-Legende: ⬜ offen · 🟡 läuft · ✅ fertig
   Anzeige-Viewer lädt sein Dokument weiterhin selbst. Bewusste, kleine Duplizierung
   zugunsten klarer Trennung – Speicher unkritisch für die lokale App.
 
-- **Caching/Prefetch:** Der teure Vision-Aufruf passiert nur bei Cache-Miss (oder
-  `force` über „Neu erklären"). Prefetch der Seite n+1 ist im Renderer entprellt
-  (600 ms) und bricht bei schnellem Durchklicken ab. Zusätzlich dedupliziert der
-  Main-Prozess gleichzeitige Anfragen pro Seite (`projectId:pageNumber`): Läuft
-  schon eine Erzeugung, hängt sich jeder weitere Aufruf an deren Ergebnis an –
-  dieselbe Seite kann so unter keinen Umständen doppelt abgerechnet werden (auch
-  nicht im Prefetch-Rennen zwischen Hintergrundladen und Aufschlagen der Seite).
+- **Manuelles Erklären (Etappe 7):** Eine noch nicht erklärte Seite wird NIE
+  automatisch generiert – weder beim Öffnen noch im Voraus. Der Renderer prüft beim
+  Öffnen nur den Cache und zeigt sonst einen „Seite erklären"-Knopf (Zustand `idle`
+  in `useExplanation`). Erst der Knopf (bzw. „Neu erklären") löst den Vision-Aufruf
+  aus. So entstehen ausschließlich Kosten, die man selbst auslöst. Das frühere
+  Prefetching der Folgeseite samt Einstellungs-Schalter wurde dafür entfernt.
+
+- **Caching:** Der teure Vision-Aufruf passiert nur bei Cache-Miss (oder `force`
+  über „Neu erklären"); beim Wiederöffnen liefert `pages:get` den gespeicherten
+  Text. Zusätzlich dedupliziert der Main-Prozess gleichzeitige Anfragen pro Seite
+  (`projectId:pageNumber`): Läuft schon eine Erzeugung, hängt sich jeder weitere
+  Aufruf an deren Ergebnis an – dieselbe Seite kann so unter keinen Umständen
+  doppelt abgerechnet werden (z. B. bei schnellem Doppelklick auf „Erklären").
 
 
 - **Seitenzahl beim Import:** Wird mit `0` angelegt; die echte Seitenzahl ermittelt

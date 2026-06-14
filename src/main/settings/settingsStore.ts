@@ -2,7 +2,7 @@
  * Persistenz der Einstellungen und des API-Keys (Etappe 5).
  *
  * Zwei getrennte Ablagen, weil sie unterschiedlich schützenswert sind:
- *  - Nicht-geheime Einstellungen (Modell, Niveau, Prefetch) liegen als JSON in
+ *  - Nicht-geheime Einstellungen (Modell, Niveau) liegen als JSON in
  *    `settings.json`.
  *  - Der API-Key wird mit Electrons `safeStorage` verschlüsselt (Schlüssel im
  *    OS-Keychain) und als Bytes in `apikey.bin` abgelegt – nie im Klartext.
@@ -24,11 +24,7 @@ function normalize(raw: Partial<AppSettings>): AppSettings {
     explanationLevel:
       level === 'einfach' || level === 'standard' || level === 'detailliert'
         ? level
-        : DEFAULT_SETTINGS.explanationLevel,
-    prefetchEnabled:
-      typeof raw.prefetchEnabled === 'boolean'
-        ? raw.prefetchEnabled
-        : DEFAULT_SETTINGS.prefetchEnabled
+        : DEFAULT_SETTINGS.explanationLevel
   }
 }
 

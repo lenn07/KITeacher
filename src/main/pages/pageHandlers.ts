@@ -6,8 +6,8 @@
  * wird der gecachte Text geliefert – das spart Tokens beim Wiederöffnen.
  *
  * Doppelte Kosten ausgeschlossen: Läuft für eine Seite bereits eine Erzeugung,
- * hängt sich jeder weitere Aufruf (Prefetch-Rennen, schnelles Klicken, „Neu
- * erklären") an dasselbe Ergebnis an, statt eine zweite API-Anfrage zu starten.
+ * hängt sich jeder weitere Aufruf (schnelles Doppelklicken, „Neu erklären") an
+ * dasselbe Ergebnis an, statt eine zweite API-Anfrage zu starten.
  *
  * Hält die Schichten getrennt: Der Handler übersetzt nur zwischen IPC,
  * Repository, Settings-Store und KI-Provider. Vertrag siehe `shared/ipc.ts`.

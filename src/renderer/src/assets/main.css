@@ -518,6 +518,18 @@ body {
   font-size: 0.8rem;
 }
 
+/* Aufforderungs-Blase: neue Seite noch nicht erklärt (mit „Seite erklären"). */
+.chat-bubble-cta {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.6rem;
+}
+
+.chat-bubble-cta p {
+  margin: 0;
+}
+
 /* Fehler-Blase der Erklärung (mit „Erneut versuchen"). */
 .chat-bubble-error {
   display: flex;
@@ -643,25 +655,4 @@ body {
 
 .settings-status.fail {
   color: #c0392b;
-}
-
-.settings-toggle {
-  display: flex;
-  align-items: flex-start;
-  gap: 0.6rem;
-  cursor: pointer;
-}
-
-.settings-toggle input {
-  margin-top: 0.25rem;
-}
-
-.settings-toggle span {
-  display: flex;
-  flex-direction: column;
-  gap: 0.15rem;
-}
-
-.settings-toggle .settings-hint {
-  margin: 0;
 }

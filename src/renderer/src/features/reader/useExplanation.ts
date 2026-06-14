@@ -1,22 +1,19 @@
 /**
- * Lädt und cacht den KI-Erklärtext zur aktuellen Seite und prefetcht die nächste
- * Seite im Hintergrund (Etappe 6).
+ * Lädt den KI-Erklärtext zur aktuellen Seite (Etappe 6, angepasst in Etappe 7).
  *
- * Ablauf pro Seite:
- *  1. Cache befragen (`pages.get`) – liegt Text vor, sofort anzeigen (kein Token).
- *  2. Sonst Seite mit pdf.js zum Bild rendern und erklären lassen (`generateExplanation`).
- *
- * Prefetch (n+1) ist entprellt: Bei schnellem Durchklicken wird der Timer der
- * vorigen Seite verworfen, sodass nur die Seite vorausgeladen wird, auf der man
- * kurz verweilt. Bereits gecachte Seiten werden übersprungen.
+ * Wichtig: Eine noch nicht erklärte Seite wird NICHT automatisch generiert – auch
+ * nicht im Voraus. Beim Öffnen wird nur der Cache geprüft:
+ *  - liegt ein Text vor → sofort anzeigen (kein Token),
+ *  - sonst Zustand `idle` → die UI zeigt einen „Seite erklären"-Knopf.
+ * Erst auf Knopfdruck (`explain`) wird die Seite mit pdf.js zum Bild gerendert
+ * und erklärt; `regenerate` umgeht den Cache („Neu erklären"). Ein Vision-Aufruf
+ * passiert ausschließlich, wenn man ihn auslöst.
  */
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { renderPageImage } from './pdfImage'
 
-/** Wartezeit, bevor die nächste Seite vorausgeladen wird (Entprellung). */
-const PREFETCH_DELAY_MS = 600
-
 export type ExplanationState =
+  | { status: 'idle' }
   | { status: 'loading' }
   | { status: 'ready'; text: string }
   | { status: 'error'; message: string }
@@ -24,103 +21,75 @@ export type ExplanationState =
 interface UseExplanationArgs {
   projectId: number
   pageNumber: number
-  pageCount: number
-  prefetchEnabled: boolean
 }
 
 interface UseExplanationResult {
   state: ExplanationState
-  /** Erklärung verwerfen und neu generieren (Cache umgehen). */
+  /** Erklärung erzeugen (Knopf bei einer noch nicht erklärten Seite). */
+  explain: () => void
+  /** Erklärung verwerfen und neu erzeugen (Cache umgehen). */
   regenerate: () => void
 }
 
 export function useExplanation({
   projectId,
-  pageNumber,
-  pageCount,
-  prefetchEnabled
+  pageNumber
 }: UseExplanationArgs): UseExplanationResult {
-  const [state, setState] = useState<ExplanationState>({ status: 'loading' })
-  // Zählt hoch, um eine Neugenerierung anzustoßen; trägt zugleich das „force"-Signal.
-  const [reloadToken, setReloadToken] = useState(0)
-  const forceRef = useRef(false)
+  const [state, setState] = useState<ExplanationState>({ status: 'idle' })
+  // Verwirft veraltete Antworten, wenn die Seite zwischenzeitlich gewechselt wird.
+  const requestRef = useRef(0)
 
-  const regenerate = useCallback(() => {
-    forceRef.current = true
-    setReloadToken((token) => token + 1)
-  }, [])
-
-  // Aktuelle Seite laden (Cache → sonst generieren). Bei Wechsel sauber abbrechen.
-  useEffect(() => {
-    const force = forceRef.current
-    forceRef.current = false
-    let cancelled = false
-
-    async function load(): Promise<void> {
+  // Erzeugt die Erklärung der aktuellen Seite (force = Cache umgehen).
+  const generate = useCallback(
+    async (force: boolean): Promise<void> => {
+      const token = ++requestRef.current
       setState({ status: 'loading' })
-
-      if (!force) {
-        const cached = await window.api.pages.get(projectId, pageNumber)
-        if (cancelled) return
-        if (cached?.explanation) {
-          setState({ status: 'ready', text: cached.explanation })
-          return
-        }
-      }
-
       try {
         const image = await renderPageImage(projectId, pageNumber)
-        if (cancelled) return
+        if (requestRef.current !== token) return
         const result = await window.api.pages.generateExplanation({
           projectId,
           pageNumber,
           image,
           force
         })
-        if (cancelled) return
+        if (requestRef.current !== token) return
         if (result.ok) {
           setState({ status: 'ready', text: result.page.explanation ?? '' })
         } else {
           setState({ status: 'error', message: result.message })
         }
       } catch {
-        if (!cancelled) {
+        if (requestRef.current === token) {
           setState({ status: 'error', message: 'Die Seite konnte nicht erklärt werden.' })
         }
       }
-    }
+    },
+    [projectId, pageNumber]
+  )
 
-    load()
-    return () => {
-      cancelled = true
-    }
-  }, [projectId, pageNumber, reloadToken])
+  const explain = useCallback(() => void generate(false), [generate])
+  const regenerate = useCallback(() => void generate(true), [generate])
 
-  // Nächste Seite vorausladen – entprellt, abbrechbar bei schnellem Klicken.
+  // Seitenwechsel: nur den Cache prüfen, NICHT automatisch generieren.
   useEffect(() => {
-    if (!prefetchEnabled) return
-    const next = pageNumber + 1
-    if (next > pageCount) return
+    const token = ++requestRef.current
+    setState({ status: 'loading' })
 
-    let cancelled = false
-    const timer = setTimeout(async () => {
-      try {
-        const cached = await window.api.pages.get(projectId, next)
-        if (cancelled || cached?.explanation) return
-        const image = await renderPageImage(projectId, next)
-        if (cancelled) return
-        // Ergebnis landet im Cache; die Seite zeigt es beim Aufschlagen sofort.
-        await window.api.pages.generateExplanation({ projectId, pageNumber: next, image })
-      } catch {
-        // Prefetch-Fehler bewusst ignorieren – die Seite generiert beim Öffnen erneut.
-      }
-    }, PREFETCH_DELAY_MS)
+    window.api.pages
+      .get(projectId, pageNumber)
+      .then((cached) => {
+        if (requestRef.current !== token) return
+        setState(
+          cached?.explanation
+            ? { status: 'ready', text: cached.explanation }
+            : { status: 'idle' }
+        )
+      })
+      .catch(() => {
+        if (requestRef.current === token) setState({ status: 'idle' })
+      })
+  }, [projectId, pageNumber])
 
-    return () => {
-      cancelled = true
-      clearTimeout(timer)
-    }
-  }, [projectId, pageNumber, pageCount, prefetchEnabled])
-
-  return { state, regenerate }
+  return { state, explain, regenerate }
 }

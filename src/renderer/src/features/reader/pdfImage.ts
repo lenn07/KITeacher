@@ -3,8 +3,8 @@
  *
  * Getrennt vom Anzeige-Renderer (`PdfViewer`): Der Viewer rendert zoomabhängig
  * fürs Auge, hier brauchen wir ein gleichmäßig aufgelöstes Bild für Claude.
- * Geladene Dokumente werden pro Projekt gecacht, damit nicht für jede Seite das
- * ganze PDF neu geparst wird (Prefetch holt z. B. die nächste Seite).
+ * Geladene Dokumente werden pro Projekt gecacht, damit nicht für jede Anfrage das
+ * ganze PDF neu geparst wird (Erklärung und jede Chat-Rückfrage rendern ein Bild).
  *
  * Der Renderer hat keinen Datei-Zugriff: Die PDF-Bytes kommen über die Bridge
  * (`window.api.projects.readPdf`), genau wie im Anzeige-Viewer.

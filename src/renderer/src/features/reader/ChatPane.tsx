@@ -4,8 +4,9 @@
  * Alles ist ein einziger Chat: Die KI-Erklärung der Seite ist die erste
  * Nachricht (assistant), darunter reihen sich die Rückfragen (user) und die
  * Antworten (assistant) ein. Die Erklärung bleibt technisch getrennt gecacht
- * (`pages`-Tabelle, On-Demand/Prefetch) und wird hier nur als erste Blase
- * dargestellt – inkl. ihrer Lade-/Fehlerzustände und „Neu erklären".
+ * (`pages`-Tabelle, On-Demand) und wird hier nur als erste Blase dargestellt –
+ * inkl. `idle` (noch nicht erklärt, „Seite erklären"), Lade-/Fehlerzustand und
+ * „Neu erklären".
  *
  * KI-Texte werden als Markdown gerendert (inkl. Mathe via KaTeX); während die KI
  * antwortet, erscheint die Frage sofort als „pending"-Blase mit Spinner.
@@ -17,18 +18,24 @@ import type { UseChatResult } from './useChat'
 
 interface ChatPaneProps {
   explanation: ExplanationState
+  onExplain: () => void
   onRegenerate: () => void
   chat: UseChatResult
 }
 
-export function ChatPane({ explanation, onRegenerate, chat }: ChatPaneProps): React.JSX.Element {
+export function ChatPane({
+  explanation,
+  onExplain,
+  onRegenerate,
+  chat
+}: ChatPaneProps): React.JSX.Element {
   const { messages, pending, status, error, send, clear } = chat
   const [input, setInput] = useState('')
   const scrollRef = useRef<HTMLDivElement>(null)
   const sending = status === 'sending'
-  // Solange die Erklärung lädt, fehlt der Kontext – erst danach Rückfragen zulassen.
-  const explanationLoading = explanation.status === 'loading'
-  const inputDisabled = sending || explanationLoading
+  // Rückfragen brauchen die Erklärung als Kontext – erst zulassen, wenn sie vorliegt.
+  const explanationReady = explanation.status === 'ready'
+  const inputDisabled = sending || !explanationReady
 
   // Bei neuen Nachrichten / Statuswechseln ans Ende scrollen.
   useEffect(() => {
@@ -61,7 +68,19 @@ export function ChatPane({ explanation, onRegenerate, chat }: ChatPaneProps): Re
       </div>
 
       <div className="chat-scroll" ref={scrollRef}>
-        {/* Erste Nachricht: die Seiten-Erklärung der KI. */}
+        {/* Erste Nachricht: die Seiten-Erklärung der KI. Neue Seiten werden nicht
+            automatisch erklärt – stattdessen ein Knopf zum Auslösen. */}
+        {explanation.status === 'idle' && (
+          <div className="chat-msg chat-msg-assistant">
+            <div className="chat-bubble chat-bubble-cta">
+              <p className="muted">Diese Seite wurde noch nicht erklärt.</p>
+              <button className="btn" onClick={onExplain}>
+                Seite erklären
+              </button>
+            </div>
+          </div>
+        )}
+
         {explanation.status === 'loading' && (
           <div className="chat-msg chat-msg-assistant">
             <div className="chat-bubble chat-typing">
@@ -131,7 +150,9 @@ export function ChatPane({ explanation, onRegenerate, chat }: ChatPaneProps): Re
           onChange={(event) => setInput(event.target.value)}
           onKeyDown={handleKeyDown}
           placeholder={
-            explanationLoading ? 'Erklärung wird erstellt…' : 'Frage zu dieser Seite stellen…'
+            explanationReady
+              ? 'Frage zu dieser Seite stellen…'
+              : 'Erst die Seite erklären lassen…'
           }
           rows={2}
           disabled={inputDisabled}
