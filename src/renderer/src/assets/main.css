@@ -20,24 +20,185 @@ body {
   height: 100vh;
 }
 
-.welcome {
+.muted {
+  opacity: 0.6;
+}
+
+.error {
+  color: #c0392b;
+  background: rgba(192, 57, 43, 0.1);
+  padding: 0.6rem 0.9rem;
+  border-radius: 8px;
+  margin: 0 0 1rem;
+}
+
+/* --- Buttons --------------------------------------------------------------- */
+.btn {
+  font: inherit;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  padding: 0.45rem 0.9rem;
+  cursor: pointer;
+  background: transparent;
+  color: inherit;
+}
+
+.btn:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.btn.primary {
+  background: #2d6cdf;
+  color: #fff;
+  font-weight: 600;
+}
+
+.btn.primary:not(:disabled):hover {
+  background: #245bc0;
+}
+
+.btn.ghost {
+  border-color: rgba(128, 128, 128, 0.35);
+  font-size: 0.85rem;
+}
+
+.btn.ghost:hover {
+  border-color: rgba(128, 128, 128, 0.7);
+}
+
+.btn.ghost.danger {
+  color: #c0392b;
+  border-color: rgba(192, 57, 43, 0.4);
+}
+
+.btn.ghost.danger:hover {
+  background: rgba(192, 57, 43, 0.1);
+}
+
+/* --- Projekt-Übersicht ----------------------------------------------------- */
+.menu {
+  max-width: 820px;
+  margin: 0 auto;
+  padding: 2.5rem 1.5rem;
+}
+
+.menu-header {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.menu-header h1 {
+  margin: 0;
+  font-size: 1.9rem;
+}
+
+.menu-header .subtitle {
+  margin: 0.2rem 0 0;
+  opacity: 0.6;
+}
+
+.empty {
+  text-align: center;
+  padding: 3rem 1rem;
+}
+
+.empty p {
+  margin: 0.3rem 0;
+}
+
+.project-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.project-item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  border: 1px solid rgba(128, 128, 128, 0.25);
+  border-radius: 10px;
+  padding: 0.6rem 0.8rem;
+}
+
+.project-item:hover {
+  border-color: rgba(128, 128, 128, 0.5);
+}
+
+.project-main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.2rem;
+  background: transparent;
+  border: none;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+  text-align: left;
+  padding: 0.2rem;
+}
+
+.project-name {
+  font-size: 1.05rem;
+  font-weight: 600;
+}
+
+.project-meta {
+  font-size: 0.8rem;
+  opacity: 0.6;
+}
+
+.rename-input {
+  flex: 1;
+  font: inherit;
+  font-size: 1.05rem;
+  padding: 0.4rem 0.5rem;
+  border-radius: 8px;
+  border: 1px solid #2d6cdf;
+  background: transparent;
+  color: inherit;
+}
+
+.project-actions {
+  display: flex;
+  gap: 0.4rem;
+  flex-shrink: 0;
+}
+
+/* --- Geöffnetes Projekt (Platzhalter) -------------------------------------- */
+.project-view {
   height: 100%;
   display: flex;
   flex-direction: column;
+}
+
+.view-header {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem 1.5rem;
+  border-bottom: 1px solid rgba(128, 128, 128, 0.25);
+}
+
+.view-header h2 {
+  margin: 0;
+  font-size: 1.2rem;
+}
+
+.view-body {
+  flex: 1;
+  display: flex;
   align-items: center;
   justify-content: center;
-  gap: 0.5rem;
-  text-align: center;
   padding: 2rem;
-}
-
-.welcome h1 {
-  margin: 0;
-  font-size: 2.5rem;
-}
-
-.welcome .version {
-  margin-top: 1rem;
-  font-size: 0.85rem;
-  opacity: 0.6;
+  text-align: center;
 }

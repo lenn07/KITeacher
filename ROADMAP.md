@@ -14,7 +14,11 @@ Status-Legende: ⬜ offen · 🟡 läuft · ✅ fertig
    (`PRAGMA user_version`), App-Datenordner (DB + `pdfs/`). Datenzugriff über
    Repository-Pattern (`Project`/`Page`/`ChatMessage`), Domänentypen in `shared`.
    DB wird beim App-Start initialisiert. Build, Typecheck & DB-Smoke-Test grün.
-3. ⬜ **Projekt-Menü** – Übersicht, PDF-Import, Umbenennen, Öffnen, Löschen.
+3. ✅ **Projekt-Menü** – Übersicht (neueste zuerst), PDF-Import via Datei-Dialog
+   (Kopie nach `pdfs/`, Anzeigename = Dateiname), Umbenennen (inline), Öffnen
+   (Platzhalter-Ansicht bis Etappe 4), Löschen (mit Bestätigung + PDF-Datei).
+   IPC-Kanäle `projects:*`, Feature-Ordner `main/projects/` & `renderer/.../features/projects/`.
+   Build & Typecheck grün.
 4. ⬜ **Split-Screen + PDF-Viewer** – PDF links, Seiten-Navigation (vor/zurück).
 5. ⬜ **Einstellungen + API-Key** – Eingabe, sichere Speicherung (Keychain), Verbindungstest.
 6. ⬜ **KI-Erklärung (Vision)** – Seite→Bild→Claude, Erklärtext rechts, Caching + Prefetching.
@@ -22,6 +26,10 @@ Status-Legende: ⬜ offen · 🟡 läuft · ✅ fertig
 8. ⬜ **Feinschliff** – Ladezustände, Fehlerbehandlung (kein Key / API-Fehler), UI-Politur.
 
 ## Notizen / Abweichungen
+
+- **Seitenzahl beim Import:** Wird vorerst mit `0` angelegt. pdf.js kommt erst in
+  Etappe 4 – die echte Seitenzahl wird dort ermittelt und nachgetragen. Die UI
+  blendet die Angabe aus, solange sie `0` ist.
 
 - **Build:** electron-vite gewählt (saubere Main/Preload/Renderer-Trennung, typsicher).
   Main/Preload werden als CommonJS gebaut (kein `"type": "module"`), um den
