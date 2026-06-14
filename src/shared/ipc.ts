@@ -14,7 +14,9 @@ export const IpcChannels = {
   projectsImport: 'projects:import',
   projectsRename: 'projects:rename',
   projectsDelete: 'projects:delete',
-  projectsGet: 'projects:get'
+  projectsGet: 'projects:get',
+  projectsReadPdf: 'projects:readPdf',
+  projectsSetPageCount: 'projects:setPageCount'
 } as const
 
 /** API rund um Projekte (Übersicht, Import, Umbenennen, Öffnen, Löschen). */
@@ -32,6 +34,16 @@ export interface ProjectsApi {
   delete: (id: number) => Promise<void>
   /** Einzelnes Projekt oder `null` (z. B. zum Öffnen). */
   getById: (id: number) => Promise<Project | null>
+  /**
+   * Liefert die Roh-Bytes der PDF-Kopie eines Projekts. Der Renderer hat keinen
+   * Datei-Zugriff – pdf.js bekommt die Bytes über diese Bridge.
+   */
+  readPdf: (id: number) => Promise<Uint8Array>
+  /**
+   * Trägt die tatsächliche Seitenzahl nach (beim Import noch 0). Wird vom
+   * PDF-Viewer aufgerufen, sobald pdf.js das Dokument geladen hat.
+   */
+  setPageCount: (id: number, pageCount: number) => Promise<void>
 }
 
 /**

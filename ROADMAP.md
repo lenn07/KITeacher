@@ -19,7 +19,13 @@ Status-Legende: ⬜ offen · 🟡 läuft · ✅ fertig
    (Platzhalter-Ansicht bis Etappe 4), Löschen (mit Bestätigung + PDF-Datei).
    IPC-Kanäle `projects:*`, Feature-Ordner `main/projects/` & `renderer/.../features/projects/`.
    Build & Typecheck grün.
-4. ⬜ **Split-Screen + PDF-Viewer** – PDF links, Seiten-Navigation (vor/zurück).
+4. ✅ **Split-Screen + PDF-Viewer** – Split-Screen (links PDF, rechts Erklär-Platz),
+   PDF-Anzeige via `pdf.js` auf Canvas (an Containerbreite skaliert, Geräte-Pixeldichte),
+   Seiten-Navigation (vor/zurück), Zoom per Pinch-Geste (Trackpad) bzw. Strg/Cmd+Scrollrad
+   (0,25×–5×, neu gerendert → bleibt scharf). PDF-Bytes über IPC (`projects:readPdf`), kein
+   Datei-Zugriff im Renderer. Echte Seitenzahl wird beim Laden ermittelt und – falls
+   beim Import noch 0 – persistent nachgetragen (`projects:setPageCount`).
+   Feature-Ordner `renderer/.../features/reader/`. Build & Typecheck grün.
 5. ⬜ **Einstellungen + API-Key** – Eingabe, sichere Speicherung (Keychain), Verbindungstest.
 6. ⬜ **KI-Erklärung (Vision)** – Seite→Bild→Claude, Erklärtext rechts, Caching + Prefetching.
 7. ⬜ **Chat pro Seite** – Rückfragen mit Kontext, Verlauf gespeichert.
@@ -27,9 +33,14 @@ Status-Legende: ⬜ offen · 🟡 läuft · ✅ fertig
 
 ## Notizen / Abweichungen
 
-- **Seitenzahl beim Import:** Wird vorerst mit `0` angelegt. pdf.js kommt erst in
-  Etappe 4 – die echte Seitenzahl wird dort ermittelt und nachgetragen. Die UI
-  blendet die Angabe aus, solange sie `0` ist.
+- **Seitenzahl beim Import:** Wird mit `0` angelegt; die echte Seitenzahl ermittelt
+  der PDF-Viewer (Etappe 4) beim ersten Öffnen via pdf.js und trägt sie persistent
+  nach. Die Übersicht blendet die Angabe aus, solange sie `0` ist (z. B. vor dem
+  ersten Öffnen).
+
+- **pdf.js-Worker:** `pdfjs-dist` lagert das Parsen in einen Web-Worker aus. Dessen
+  URL kommt über Vites `?url`-Import (`pdf.worker.min.mjs?url`) → eigener Asset-Chunk,
+  funktioniert in Dev und Build. Dafür `vite/client`-Typen via `src/renderer/src/env.d.ts`.
 
 - **Build:** electron-vite gewählt (saubere Main/Preload/Renderer-Trennung, typsicher).
   Main/Preload werden als CommonJS gebaut (kein `"type": "module"`), um den
