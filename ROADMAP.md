@@ -26,12 +26,28 @@ Status-Legende: ⬜ offen · 🟡 läuft · ✅ fertig
    Datei-Zugriff im Renderer. Echte Seitenzahl wird beim Laden ermittelt und – falls
    beim Import noch 0 – persistent nachgetragen (`projects:setPageCount`).
    Feature-Ordner `renderer/.../features/reader/`. Build & Typecheck grün.
-5. ⬜ **Einstellungen + API-Key** – Eingabe, sichere Speicherung (Keychain), Verbindungstest.
+5. ✅ **Einstellungen + API-Key** – Einstellungsansicht (über die Übersicht erreichbar):
+   API-Key-Eingabe mit sicherer Speicherung im OS-Keychain (`safeStorage`, nie Klartext,
+   getrennt von `settings.json`), Verbindungstest gegen die Claude-API (`models.retrieve`,
+   tokensparend), Modellwahl, Erklär-Niveau und Prefetch-Schalter. KI hinter dem
+   `AIProvider`-Interface (`AnthropicProvider`). IPC-Kanäle `settings:*`, Feature-Ordner
+   `main/settings/`, `main/ai/` & `renderer/.../features/settings/`. Build & Typecheck grün.
 6. ⬜ **KI-Erklärung (Vision)** – Seite→Bild→Claude, Erklärtext rechts, Caching + Prefetching.
 7. ⬜ **Chat pro Seite** – Rückfragen mit Kontext, Verlauf gespeichert.
 8. ⬜ **Feinschliff** – Ladezustände, Fehlerbehandlung (kein Key / API-Fehler), UI-Politur.
 
 ## Notizen / Abweichungen
+
+- **API-Key-Ablage:** Verschlüsselt via `safeStorage` in `apikey.bin` (Schlüssel im
+  OS-Keychain). Bewusst getrennt von `settings.json` (Modell/Niveau/Prefetch) und ohne
+  IPC-Rückkanal – der Key verlässt den Main-Prozess nie im Klartext; die UI kennt nur
+  das `hasApiKey`-Flag. Ist `safeStorage` nicht verfügbar, schlägt das Speichern bewusst
+  fehl (keine Klartext-Fallback-Ablage).
+- **Verbindungstest:** `models.retrieve(model)` statt einer Chat-Anfrage – prüft Key
+  **und** Modellverfügbarkeit, ohne Tokens zu verbrauchen.
+- **AIProvider:** In Etappe 5 nur `testConnection`; die Methoden für Seiten-Erklärung
+  und Chat kommen in Etappe 6 dazu (Interface in `main/ai/aiProvider.ts`).
+
 
 - **Seitenzahl beim Import:** Wird mit `0` angelegt; die echte Seitenzahl ermittelt
   der PDF-Viewer (Etappe 4) beim ersten Öffnen via pdf.js und trägt sie persistent

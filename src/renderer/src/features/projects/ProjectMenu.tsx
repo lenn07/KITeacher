@@ -10,6 +10,7 @@ import type { Project } from '@shared/domain'
 
 interface ProjectMenuProps {
   onOpen: (project: Project) => void
+  onOpenSettings: () => void
 }
 
 /** Erstellungsdatum kompakt und lesbar darstellen. */
@@ -20,7 +21,7 @@ function formatDate(iso: string): string {
     : date.toLocaleString('de-DE', { dateStyle: 'medium', timeStyle: 'short' })
 }
 
-export function ProjectMenu({ onOpen }: ProjectMenuProps): React.JSX.Element {
+export function ProjectMenu({ onOpen, onOpenSettings }: ProjectMenuProps): React.JSX.Element {
   const [projects, setProjects] = useState<Project[]>([])
   const [loading, setLoading] = useState(true)
   const [busy, setBusy] = useState(false)
@@ -87,9 +88,14 @@ export function ProjectMenu({ onOpen }: ProjectMenuProps): React.JSX.Element {
           <h1>KITeacher</h1>
           <p className="subtitle">Deine Projekte</p>
         </div>
-        <button className="btn primary" onClick={handleImport} disabled={busy}>
-          {busy ? 'Importiere…' : '+ PDF importieren'}
-        </button>
+        <div className="menu-header-actions">
+          <button className="btn ghost" onClick={onOpenSettings}>
+            ⚙ Einstellungen
+          </button>
+          <button className="btn primary" onClick={handleImport} disabled={busy}>
+            {busy ? 'Importiere…' : '+ PDF importieren'}
+          </button>
+        </div>
       </header>
 
       {error && <p className="error">{error}</p>}

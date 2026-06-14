@@ -24,6 +24,19 @@ export function pdfStorageDir(): string {
   return join(userDataDir(), 'pdfs')
 }
 
+/** Dateipfad der nicht-geheimen Einstellungen (JSON). */
+export function settingsPath(): string {
+  return join(userDataDir(), 'settings.json')
+}
+
+/**
+ * Dateipfad des verschlüsselten API-Keys. Inhalt sind die mit
+ * `safeStorage` (OS-Keychain) verschlüsselten Bytes – nie Klartext.
+ */
+export function apiKeyPath(): string {
+  return join(userDataDir(), 'apikey.bin')
+}
+
 /**
  * Stellt sicher, dass alle benötigten Ordner existieren. Wird einmal beim
  * App-Start aufgerufen, bevor die DB geöffnet wird.

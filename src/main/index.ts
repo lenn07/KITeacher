@@ -4,6 +4,7 @@ import { electronApp, optimizer, is } from '@electron-toolkit/utils'
 import { IpcChannels } from '@shared/ipc'
 import { initDatabase, closeDatabase } from './db/database'
 import { registerProjectHandlers } from './projects/projectHandlers'
+import { registerSettingsHandlers } from './settings/settingsHandlers'
 
 function createWindow(): void {
   const mainWindow = new BrowserWindow({
@@ -54,6 +55,7 @@ app.whenReady().then(() => {
   // IPC-Handler: an einer Stelle registriert, Vertrag siehe src/shared/ipc.ts.
   ipcMain.handle(IpcChannels.appGetVersion, () => app.getVersion())
   registerProjectHandlers()
+  registerSettingsHandlers()
 
   createWindow()
 

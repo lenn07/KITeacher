@@ -91,6 +91,12 @@ body {
   margin-bottom: 1.5rem;
 }
 
+.menu-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
 .menu-header h1 {
   margin: 0;
   font-size: 1.9rem;
@@ -270,4 +276,93 @@ body {
   justify-content: center;
   padding: 2rem;
   text-align: center;
+}
+
+/* --- Einstellungen --------------------------------------------------------- */
+.settings {
+  max-width: 640px;
+  margin: 0 auto;
+  padding: 1rem 1.5rem 2.5rem;
+}
+
+.settings .view-header {
+  padding: 0.5rem 0 1rem;
+  border-bottom: none;
+}
+
+.settings-section {
+  border: 1px solid rgba(128, 128, 128, 0.25);
+  border-radius: 12px;
+  padding: 1rem 1.1rem;
+  margin-bottom: 1rem;
+}
+
+.settings-section h3 {
+  margin: 0 0 0.6rem;
+  font-size: 1.05rem;
+}
+
+.settings-hint {
+  font-size: 0.8rem;
+  margin: 0 0 0.7rem;
+}
+
+.settings-row {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.settings-input {
+  flex: 1;
+  font: inherit;
+  padding: 0.5rem 0.6rem;
+  border-radius: 8px;
+  border: 1px solid rgba(128, 128, 128, 0.4);
+  background: transparent;
+  color: inherit;
+}
+
+.settings-input:focus {
+  outline: none;
+  border-color: #2d6cdf;
+}
+
+.settings-actions {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 0.6rem;
+}
+
+.settings-status {
+  margin: 0.7rem 0 0;
+  font-size: 0.88rem;
+}
+
+.settings-status.ok {
+  color: #1e8449;
+}
+
+.settings-status.fail {
+  color: #c0392b;
+}
+
+.settings-toggle {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.6rem;
+  cursor: pointer;
+}
+
+.settings-toggle input {
+  margin-top: 0.25rem;
+}
+
+.settings-toggle span {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+
+.settings-toggle .settings-hint {
+  margin: 0;
 }
