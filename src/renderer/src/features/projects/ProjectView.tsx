@@ -24,6 +24,29 @@ export function ProjectView({ project, onBack }: ProjectViewProps): React.JSX.El
   const [pageCount, setPageCount] = useState(project.pageCount)
   const [currentPage, setCurrentPage] = useState(1)
   const [error, setError] = useState<string | null>(null)
+  // Prefetch-Einstellung einmal laden; Modell/Niveau wertet der Main-Prozess aus.
+  const [prefetchEnabled, setPrefetchEnabled] = useState(false)
+
+  useEffect(() => {
+    window.api.settings
+      .get()
+      .then((settings) => setPrefetchEnabled(settings.prefetchEnabled))
+      .catch(() => {
+        /* Ohne Einstellungen bleibt Prefetch aus – unkritisch. */
+      })
+  }, [])
+
+  // Das für die Bild-Erzeugung gecachte PDF-Dokument beim Schließen freigeben.
+  useEffect(() => {
+    return () => releaseDocument(project.id)
+  }, [project.id])
+
+  const { state: explanationState, regenerate } = useExplanation({
+    projectId: project.id,
+    pageNumber: currentPage,
+    pageCount,
+    prefetchEnabled
+  })
 
   // Das für die Bild-Erzeugung gecachte PDF-Dokument beim Schließen freigeben.
   useEffect(() => {
