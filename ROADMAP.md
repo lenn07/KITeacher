@@ -41,7 +41,19 @@ Status-Legende: ⬜ offen · 🟡 läuft · ✅ fertig
    `main/ai/prompts.ts` (Niveau-abhängig), `AIProvider.explainPage` im Interface.
    Feature-Ordner `main/pages/` & Renderer `features/reader/` (Pane + Hook + Bild-Renderer).
    Build & Typecheck grün.
-7. ⬜ **Chat pro Seite** – Rückfragen mit Kontext, Verlauf gespeichert.
+7. ✅ **Chat pro Seite** – Die ganze rechte Spalte ist EIN durchgehender Chat: Die
+   KI-Erklärung der Seite ist die erste Nachricht, darunter reihen sich Rückfragen
+   und Antworten ein (Bubbles, KI-Texte als Markdown/KaTeX über den gemeinsamen
+   `MarkdownView`). Rückfragen gehen mit Seitenbild + Erklärtext als Kontext an die
+   KI (Vision); Enter sendet / Shift+Enter neue Zeile, „Neu erklären" an der ersten
+   Blase, „Rückfragen löschen" im Kopf. Die Erklärung bleibt technisch getrennt
+   gecacht (`pages`-Tabelle, On-Demand/Prefetch unverändert), die Rückfragen liegen
+   in `chat_messages` und werden beim Öffnen der Seite geladen. Frage und Antwort
+   werden erst nach erfolgreicher KI-Antwort gespeichert – bei Fehler (kein Key /
+   API-Problem) bleibt der Verlauf unverändert. `AIProvider.chat` im Interface,
+   Prompts zentral in `main/ai/prompts.ts`. IPC-Kanäle `chat:*`, Feature-Ordner
+   `main/chat/` & Renderer `features/reader/` (Pane + Hook + `MarkdownView`).
+   Build & Typecheck grün.
 8. ⬜ **Feinschliff** – Ladezustände, Fehlerbehandlung (kein Key / API-Fehler), UI-Politur.
 
 ## Notizen / Abweichungen
@@ -53,9 +65,17 @@ Status-Legende: ⬜ offen · 🟡 läuft · ✅ fertig
   fehl (keine Klartext-Fallback-Ablage).
 - **Verbindungstest:** `models.retrieve(model)` statt einer Chat-Anfrage – prüft Key
   **und** Modellverfügbarkeit, ohne Tokens zu verbrauchen.
-- **AIProvider:** `testConnection` (Etappe 5) + `explainPage` (Etappe 6, Vision) im
-  Interface `main/ai/aiProvider.ts`. Die Chat-Methode kommt in Etappe 7 dazu. Die
+- **AIProvider:** `testConnection` (Etappe 5), `explainPage` (Etappe 6, Vision)
+  und `chat` (Etappe 7, Vision + Verlauf) im Interface `main/ai/aiProvider.ts`. Die
   Fehlerübersetzung (SDK → deutsche Meldung) liegt gemeinsam in `main/ai/errors.ts`.
+
+- **Chat-Kontext:** Der Chat schickt bei jeder Rückfrage das Seitenbild und – als
+  erster Turn – den gecachten Erklärtext mit (ein kurzer Bestätigungs-Turn der KI
+  hält den anschließenden echten Verlauf sauber). Der Renderer rendert das Bild mit
+  pdf.js (wie bei der Erklärung). Token-Optimierung (z. B. Prompt-Caching, Bild nur
+  einmal) ist bewusst dem Feinschliff (Etappe 8) vorbehalten. Gleichzeitige Anfragen
+  pro Seite werden im Main-Prozess abgewiesen (`projectId:pageNumber`), Frage + Antwort
+  erst nach Erfolg gespeichert – nie verwaiste Fragen, keine doppelten Kosten.
 
 - **Seitenbild für Vision:** Das Bild rendert der Renderer mit pdf.js
   (`features/reader/pdfImage.ts`, Ziel-Breite ~1568 px, PNG/Base64) – getrennt vom

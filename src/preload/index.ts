@@ -28,6 +28,13 @@ const api: KiTeacherApi = {
       ipcRenderer.invoke(IpcChannels.pagesGet, projectId, pageNumber),
     generateExplanation: (input) =>
       ipcRenderer.invoke(IpcChannels.pagesGenerateExplanation, input)
+  },
+  chat: {
+    list: (projectId, pageNumber) =>
+      ipcRenderer.invoke(IpcChannels.chatList, projectId, pageNumber),
+    send: (input) => ipcRenderer.invoke(IpcChannels.chatSend, input),
+    clear: (projectId, pageNumber) =>
+      ipcRenderer.invoke(IpcChannels.chatClear, projectId, pageNumber)
   }
 }
 

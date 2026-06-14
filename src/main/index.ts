@@ -6,6 +6,7 @@ import { initDatabase, closeDatabase } from './db/database'
 import { registerProjectHandlers } from './projects/projectHandlers'
 import { registerSettingsHandlers } from './settings/settingsHandlers'
 import { registerPageHandlers } from './pages/pageHandlers'
+import { registerChatHandlers } from './chat/chatHandlers'
 
 function createWindow(): void {
   const mainWindow = new BrowserWindow({
@@ -58,6 +59,7 @@ app.whenReady().then(() => {
   registerProjectHandlers()
   registerSettingsHandlers()
   registerPageHandlers()
+  registerChatHandlers()
 
   createWindow()
 

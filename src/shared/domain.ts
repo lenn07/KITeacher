@@ -96,3 +96,29 @@ export interface GenerateExplanationInput {
 export type ExplanationResult =
   | { ok: true; page: Page }
   | { ok: false; message: string }
+
+// --- Chat pro Seite (Etappe 7) -------------------------------------------
+
+/**
+ * Eingabe für eine Rückfrage im seitenbezogenen Chat. Die KI bekommt das
+ * Seitenbild und den (gecachten) Erklärtext als Kontext – das Bild rendert der
+ * Renderer mit pdf.js, den Erklärtext liest der Main-Prozess aus der DB.
+ */
+export interface SendChatMessageInput {
+  projectId: number
+  pageNumber: number
+  /** Die Rückfrage der lernenden Person. */
+  message: string
+  /** Seite als Bild (vom Renderer mit pdf.js gerendert), als Vision-Kontext. */
+  image: PageImage
+}
+
+/**
+ * Ergebnis einer Chat-Anfrage. Bei Erfolg der vollständige, aktualisierte
+ * Verlauf der Seite (inkl. neuer Frage + Antwort); bei Misserfolg eine deutsche
+ * Meldung statt eines geworfenen Fehlers (kein Key, API-Problem). Bei Fehlern
+ * wird nichts gespeichert – der Verlauf bleibt unverändert.
+ */
+export type ChatResult =
+  | { ok: true; messages: ChatMessage[] }
+  | { ok: false; message: string }

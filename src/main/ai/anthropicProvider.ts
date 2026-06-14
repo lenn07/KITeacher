@@ -8,12 +8,25 @@
  * reinen Erklärtext zurück.
  */
 import Anthropic from '@anthropic-ai/sdk'
-import type { AIProvider, AIProviderConfig, ExplainPageOptions } from './aiProvider'
+import type { AIProvider, AIProviderConfig, ChatOptions, ExplainPageOptions } from './aiProvider'
 import {
+  buildChatContextText,
+  buildChatSystemPrompt,
   buildExplanationSystemPrompt,
+  CHAT_CONTEXT_ACK,
+  CHAT_MAX_TOKENS,
   EXPLANATION_MAX_TOKENS,
   EXPLANATION_USER_PROMPT
 } from './prompts'
+
+/** Fügt die Text-Blöcke einer Antwort zusammen (ignoriert andere Block-Typen). */
+function extractText(response: Anthropic.Message): string {
+  return response.content
+    .filter((block): block is Anthropic.TextBlock => block.type === 'text')
+    .map((block) => block.text)
+    .join('\n')
+    .trim()
+}
 
 export const anthropicProvider: AIProvider = {
   async testConnection({ apiKey, model }: AIProviderConfig): Promise<void> {
@@ -46,13 +59,42 @@ export const anthropicProvider: AIProvider = {
       ]
     })
 
-    // Nur die Text-Blöcke der Antwort zusammenfügen (keine anderen Block-Typen).
-    const text = response.content
-      .filter((block): block is Anthropic.TextBlock => block.type === 'text')
-      .map((block) => block.text)
-      .join('\n')
-      .trim()
+    const text = extractText(response)
+    if (!text) throw new Error('Die KI hat keinen Text zurückgegeben.')
+    return text
+  },
 
+  async chat(
+    { apiKey, model }: AIProviderConfig,
+    { image, explanation, level, history }: ChatOptions
+  ): Promise<string> {
+    const client = new Anthropic({ apiKey })
+
+    // Erster Turn liefert das Seitenbild + Erklärtext als Kontext; ein kurzer
+    // Bestätigungs-Turn der KI hält den anschließenden echten Verlauf sauber.
+    const messages: Anthropic.MessageParam[] = [
+      {
+        role: 'user',
+        content: [
+          {
+            type: 'image',
+            source: { type: 'base64', media_type: image.mediaType, data: image.base64 }
+          },
+          { type: 'text', text: buildChatContextText(explanation) }
+        ]
+      },
+      { role: 'assistant', content: CHAT_CONTEXT_ACK },
+      ...history.map((turn) => ({ role: turn.role, content: turn.content }))
+    ]
+
+    const response = await client.messages.create({
+      model,
+      max_tokens: CHAT_MAX_TOKENS,
+      system: buildChatSystemPrompt(level),
+      messages
+    })
+
+    const text = extractText(response)
     if (!text) throw new Error('Die KI hat keinen Text zurückgegeben.')
     return text
   }

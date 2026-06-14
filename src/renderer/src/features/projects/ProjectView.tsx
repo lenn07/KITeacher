@@ -10,8 +10,9 @@
 import { useEffect, useState } from 'react'
 import type { Project } from '@shared/domain'
 import { PdfViewer } from '../reader/PdfViewer'
-import { ExplanationPane } from '../reader/ExplanationPane'
+import { ChatPane } from '../reader/ChatPane'
 import { useExplanation } from '../reader/useExplanation'
+import { useChat } from '../reader/useChat'
 import { releaseDocument } from '../reader/pdfImage'
 
 interface ProjectViewProps {
@@ -46,6 +47,8 @@ export function ProjectView({ project, onBack }: ProjectViewProps): React.JSX.El
     pageCount,
     prefetchEnabled
   })
+
+  const chat = useChat({ projectId: project.id, pageNumber: currentPage })
 
   function handleLoaded(numPages: number): void {
     setPageCount(numPages)
@@ -101,8 +104,8 @@ export function ProjectView({ project, onBack }: ProjectViewProps): React.JSX.El
           </nav>
         </section>
 
-        <section className="reader-pane explain-pane">
-          <ExplanationPane state={explanationState} onRegenerate={regenerate} />
+        <section className="reader-pane chat-pane">
+          <ChatPane explanation={explanationState} onRegenerate={regenerate} chat={chat} />
         </section>
       </div>
     </main>
