@@ -62,6 +62,31 @@ export const migrations: Migration[] = [
       // Wiederöffnen dort weitermacht statt auf Seite 1. Bestand: Default 1.
       db.exec(`ALTER TABLE projects ADD COLUMN last_page INTEGER NOT NULL DEFAULT 1;`)
     }
+  },
+  {
+    version: 3,
+    name: 'ordner-fuer-projekte',
+    up: (db) => {
+      // Verschachtelbare Ordner: `parent_id` referenziert die eigene Tabelle
+      // (NULL = Wurzel). Projekte bekommen `folder_id` (NULL = Wurzel). Beide
+      // FKs mit ON DELETE CASCADE – das Löschen eines Ordners entfernt rekursiv
+      // Unterordner und Projekte (foreign_keys ist aktiv, siehe database.ts).
+      // Bestehende Projekte haben folder_id = NULL und bleiben auf der Wurzel.
+      db.exec(`
+        CREATE TABLE folders (
+          id         INTEGER PRIMARY KEY AUTOINCREMENT,
+          name       TEXT    NOT NULL,
+          parent_id  INTEGER REFERENCES folders(id) ON DELETE CASCADE,
+          created_at TEXT    NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))
+        );
+
+        ALTER TABLE projects
+          ADD COLUMN folder_id INTEGER REFERENCES folders(id) ON DELETE CASCADE;
+
+        CREATE INDEX idx_folders_parent  ON folders(parent_id);
+        CREATE INDEX idx_projects_folder ON projects(folder_id);
+      `)
+    }
   }
 ]
 

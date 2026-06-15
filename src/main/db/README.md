@@ -16,8 +16,12 @@ Speicherorte liegen im App-Datenordner (`src/main/storage/paths.ts`):
 
 ## Datenmodell
 
-`Project` → `Page` → `ChatMessage` (siehe `src/shared/domain.ts`).
-Löschen kaskadiert (`ON DELETE CASCADE`), `foreign_keys` ist aktiv.
+`Folder` → (`Folder` | `Project`) → `Page` → `ChatMessage` (siehe
+`src/shared/domain.ts`). Ordner sind verschachtelbar (`folders.parent_id`,
+selbst-referenziell); `projects.folder_id` ordnet ein Projekt einem Ordner zu –
+`null` jeweils = Wurzelebene. Löschen kaskadiert (`ON DELETE CASCADE`),
+`foreign_keys` ist aktiv. PDF-Dateien werden beim Löschen separat im Handler
+entfernt (Cascade räumt nur DB-Zeilen).
 
 ## Migrationen erweitern
 

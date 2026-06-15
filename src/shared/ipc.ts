@@ -9,6 +9,7 @@ import type {
   ChatMessage,
   ChatResult,
   ExplanationResult,
+  Folder,
   GenerateExplanationInput,
   Page,
   Project,
@@ -19,9 +20,16 @@ import type { AppSettings, ConnectionTestResult, SettingsState } from './setting
 /** Kanal-Namen an einer Stelle, um Tippfehler zwischen Main/Preload zu vermeiden. */
 export const IpcChannels = {
   appGetVersion: 'app:getVersion',
+  foldersList: 'folders:list',
+  foldersListAll: 'folders:listAll',
+  foldersCreate: 'folders:create',
+  foldersRename: 'folders:rename',
+  foldersMove: 'folders:move',
+  foldersDelete: 'folders:delete',
   projectsList: 'projects:list',
   projectsImport: 'projects:import',
   projectsRename: 'projects:rename',
+  projectsMove: 'projects:move',
   projectsDelete: 'projects:delete',
   projectsGet: 'projects:get',
   projectsReadPdf: 'projects:readPdf',
@@ -39,17 +47,48 @@ export const IpcChannels = {
   chatClear: 'chat:clear'
 } as const
 
+/**
+ * API rund um Ordner (verschachtelbares Gruppieren von Projekten).
+ *
+ * Ein Ordner kann in einem Ordner liegen (`parentId`); `null` steht für die
+ * Wurzelebene. Das Löschen entfernt rekursiv Unterordner, Projekte und deren
+ * PDF-Dateien.
+ */
+export interface FoldersApi {
+  /** Direkte Unterordner eines Ordners (`null` = Wurzelebene), alphabetisch. */
+  list: (parentId: number | null) => Promise<Folder[]>
+  /** Alle Ordner flach (für die Zielauswahl beim Verschieben). */
+  listAll: () => Promise<Folder[]>
+  /** Legt einen Ordner an und liefert ihn zurück. */
+  create: (name: string, parentId: number | null) => Promise<Folder>
+  /** Benennt einen Ordner um und liefert den aktualisierten Stand. */
+  rename: (id: number, name: string) => Promise<Folder | null>
+  /**
+   * Verschiebt einen Ordner unter einen neuen Elternordner (`null` = Wurzel).
+   * Wirft, wenn das Ziel der Ordner selbst oder einer seiner Nachfahren ist.
+   */
+  move: (id: number, parentId: number | null) => Promise<Folder | null>
+  /**
+   * Löscht einen Ordner samt allen Unterordnern, Projekten und deren
+   * PDF-Dateien (DB per CASCADE, Dateien vom Handler).
+   */
+  delete: (id: number) => Promise<void>
+}
+
 /** API rund um Projekte (Übersicht, Import, Umbenennen, Öffnen, Löschen). */
 export interface ProjectsApi {
-  /** Alle Projekte, neueste zuerst (für die Übersicht). */
-  list: () => Promise<Project[]>
+  /** Projekte eines Ordners (`null` = Wurzelebene), neueste zuerst. */
+  list: (folderId: number | null) => Promise<Project[]>
   /**
    * Öffnet einen Datei-Dialog zum PDF-Import, kopiert die Datei in den
-   * App-Datenordner und legt ein Projekt an. `null`, wenn der Nutzer abbricht.
+   * App-Datenordner und legt ein Projekt im angegebenen Ordner an (`null` =
+   * Wurzelebene). `null`, wenn der Nutzer abbricht.
    */
-  import: () => Promise<Project | null>
+  import: (folderId: number | null) => Promise<Project | null>
   /** Benennt ein Projekt um und liefert den aktualisierten Stand. */
   rename: (id: number, name: string) => Promise<Project | null>
+  /** Verschiebt ein Projekt in einen Ordner (`null` = Wurzelebene). */
+  move: (id: number, folderId: number | null) => Promise<Project | null>
   /** Löscht ein Projekt samt PDF-Datei (Seiten/Chats per CASCADE). */
   delete: (id: number) => Promise<void>
   /** Einzelnes Projekt oder `null` (z. B. zum Öffnen). */
@@ -140,6 +179,8 @@ export interface ChatApi {
 export interface KiTeacherApi {
   /** Liefert die App-Version (Smoke-Test für die IPC-Bridge). */
   getAppVersion: () => Promise<string>
+  /** Ordner-Verwaltung (siehe FoldersApi). */
+  folders: FoldersApi
   /** Projekt-Verwaltung (siehe ProjectsApi). */
   projects: ProjectsApi
   /** Einstellungen & API-Key (siehe SettingsApi). */

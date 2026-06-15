@@ -6,14 +6,30 @@
  * Spaltennamen der Datenbank sind snake_case, hier in der TS-Welt camelCase –
  * die Übersetzung passiert ausschließlich in den Repositories.
  *
- * Beziehung: Project → Page → ChatMessage.
+ * Beziehung: Folder → (Folder | Project) → Page → ChatMessage.
  */
+
+/**
+ * Ein verschachtelbarer Ordner zum Gruppieren von Projekten. Ordner können in
+ * Ordnern liegen (`parentId`); `null` bedeutet Wurzelebene.
+ */
+export interface Folder {
+  id: number
+  /** Anzeigename des Ordners. */
+  name: string
+  /** Übergeordneter Ordner, `null` = Wurzelebene. */
+  parentId: number | null
+  /** ISO-8601-Zeitstempel der Erstellung. */
+  createdAt: string
+}
 
 /** Ein importiertes PDF samt Metadaten. */
 export interface Project {
   id: number
   /** Anzeigename, Standard = PDF-Dateiname, vom Nutzer umbenennbar. */
   name: string
+  /** Ordner, in dem das Projekt liegt; `null` = Wurzelebene. */
+  folderId: number | null
   /** Pfad zur PDF-Kopie im App-Datenordner. */
   pdfPath: string
   /** Anzahl Seiten des PDFs (0 bis bekannt). */
@@ -51,9 +67,18 @@ export interface ChatMessage {
 
 // --- Eingabetypen (ohne von der DB vergebene Felder) ---------------------
 
+/** Daten zum Anlegen eines Ordners. */
+export interface NewFolder {
+  name: string
+  /** Übergeordneter Ordner, `null` = Wurzelebene. */
+  parentId: number | null
+}
+
 /** Daten zum Anlegen eines Projekts. */
 export interface NewProject {
   name: string
+  /** Ordner, in dem das Projekt liegt; `null` = Wurzelebene. */
+  folderId: number | null
   pdfPath: string
   pageCount: number
 }

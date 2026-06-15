@@ -6,13 +6,17 @@ für Rückfragen. Alles läuft lokal, kein Login. Jeder Nutzer hinterlegt seinen
 Claude API-Key.
 
 > **Hinweis für neue Chats:** Diese Datei beschreibt *was* die App ist und *wie* sie
-> gebaut wird. Den aktuellen Fortschritt und die nächsten Schritte findest du in
-> [ROADMAP.md](ROADMAP.md). Beide Dateien werden während der Arbeit aktuell gehalten.
+> gebaut wird. Bewusste Design-Entscheidungen und Abweichungen (das *Warum*) stehen
+> in [DECISIONS.md](DECISIONS.md).
 
 ## Kernfunktionen
 
-- **Projekt-Menü:** Liste aller Projekte (umbenennbarer Name, Standard = PDF-Dateiname).
-  Öffnen / umbenennen / löschen. Frühere Projekte jederzeit wieder aufrufbar.
+- **Projekt-Menü:** Ordner-Browser über alle Projekte (umbenennbarer Name, Standard =
+  PDF-Dateiname). Öffnen / umbenennen / verschieben / löschen. Frühere Projekte
+  jederzeit wieder aufrufbar.
+- **Ordner:** Verschachtelbare Ordner zum Gruppieren von PDFs (Ordner in Ordner).
+  PDFs werden in den aktuellen Ordner importiert; Navigation per Breadcrumb. Das
+  Löschen eines Ordners entfernt rekursiv Unterordner, Projekte und deren PDFs.
 - **Split-Screen:** links PDF mit Vor/Zurück-Navigation, rechts Erklärtext zur aktuellen Seite.
 - **KI-Erklärung:** aktuelle Seite wird als **Bild** an Claude (Vision) geschickt → didaktischer
   Erklärtext. So werden auch Diagramme, Formeln und Layout erfasst.
@@ -35,11 +39,12 @@ Claude API-Key.
 
 ## Datenmodell
 
-- `Project` (id, name, pdf_pfad, seitenanzahl, erstellt_am)
+- `Folder` (id, name, parent_id, erstellt_am) – `parent_id` = übergeordneter Ordner, `null` = Wurzel
+- `Project` (id, name, folder_id, pdf_pfad, seitenanzahl, erstellt_am) – `folder_id` `null` = Wurzel
 - `Page` (id, project_id, seitennummer, erklärtext, generiert_am)
 - `ChatMessage` (id, page_id, rolle, inhalt, zeitstempel)
 
-Beziehung: `Project` → `Page` → `ChatMessage`.
+Beziehung: `Folder` → (`Folder` | `Project`) → `Page` → `ChatMessage`.
 
 ## Architektur-Prinzipien (wichtig: auf Weiterentwickelbarkeit ausgelegt)
 
@@ -60,4 +65,4 @@ Beziehung: `Project` → `Page` → `ChatMessage`.
 - Sprache der App und der KI-Erklärtexte: **Deutsch**.
 - Erklär-Stil: didaktisch / „erkläre es einfach", Niveau in Einstellungen anpassbar.
 - Diese Datei (`CLAUDE.md`) schlank und stabil halten (das „Was & Wie").
-  Fortschritt gehört in `ROADMAP.md`.
+  Begründungen einzelner Entscheidungen gehören in `DECISIONS.md`.
