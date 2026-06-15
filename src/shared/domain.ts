@@ -52,6 +52,24 @@ export interface Page {
   generatedAt: string | null
 }
 
+/**
+ * Ein Notiz-Block einer Seite (Logseq-artiger Outliner).
+ *
+ * Notizen pro Seite sind eine geordnete Liste solcher Blöcke. `position` legt
+ * die Reihenfolge fest, `indent` die Verschachtelungstiefe (0 = oberste Ebene),
+ * `content` ist roher Markdown (inkl. Mathe), der im UI gerendert wird.
+ */
+export interface NoteBlock {
+  id: number
+  pageId: number
+  /** Reihenfolge innerhalb der Seite (0-basiert). */
+  position: number
+  /** Verschachtelungstiefe (0 = oberste Ebene). */
+  indent: number
+  /** Roher Markdown-Inhalt des Blocks. */
+  content: string
+}
+
 /** Rolle einer Chat-Nachricht im seitenbezogenen Verlauf. */
 export type ChatRole = 'user' | 'assistant'
 
@@ -87,6 +105,17 @@ export interface NewProject {
 export interface NewChatMessage {
   pageId: number
   role: ChatRole
+  content: string
+}
+
+/**
+ * Ein einzelner Notiz-Block beim Speichern (ohne von der DB vergebene Felder).
+ * Die Notizen einer Seite werden als komplette Liste übergeben und ersetzt –
+ * der Renderer ist die Quelle der Wahrheit für Reihenfolge und Verschachtelung.
+ */
+export interface NoteBlockInput {
+  position: number
+  indent: number
   content: string
 }
 

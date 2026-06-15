@@ -11,6 +11,8 @@ import type {
   ExplanationResult,
   Folder,
   GenerateExplanationInput,
+  NoteBlock,
+  NoteBlockInput,
   Page,
   Project,
   SendChatMessageInput
@@ -44,7 +46,9 @@ export const IpcChannels = {
   pagesGenerateExplanation: 'pages:generateExplanation',
   chatList: 'chat:list',
   chatSend: 'chat:send',
-  chatClear: 'chat:clear'
+  chatClear: 'chat:clear',
+  notesList: 'notes:list',
+  notesSave: 'notes:save'
 } as const
 
 /**
@@ -173,6 +177,27 @@ export interface ChatApi {
 }
 
 /**
+ * API rund um die seitenbezogenen Notizen (Logseq-artiger Outliner).
+ *
+ * Notizen sind eine geordnete Liste von Blöcken pro Seite, rein lokal (kein
+ * KI-Aufruf). Der Renderer hält den Bearbeitungsstand und schickt beim Speichern
+ * die komplette Block-Liste, die der Main-Prozess für die Seite ersetzt.
+ */
+export interface NotesApi {
+  /** Gespeicherte Notiz-Blöcke einer Seite (leer, falls noch keine existieren). */
+  list: (projectId: number, pageNumber: number) => Promise<NoteBlock[]>
+  /**
+   * Ersetzt die Notiz-Blöcke einer Seite durch die übergebene Liste und liefert
+   * den gespeicherten Stand zurück (mit von der DB vergebenen `id`s).
+   */
+  save: (
+    projectId: number,
+    pageNumber: number,
+    blocks: NoteBlockInput[]
+  ) => Promise<NoteBlock[]>
+}
+
+/**
  * Die API, die im Renderer unter `window.api` zur Verfügung steht.
  * Wird vom Preload-Skript implementiert und hier nur typisiert.
  */
@@ -189,4 +214,6 @@ export interface KiTeacherApi {
   pages: PagesApi
   /** Seitenbezogener Chat (siehe ChatApi). */
   chat: ChatApi
+  /** Seitenbezogene Notizen (siehe NotesApi). */
+  notes: NotesApi
 }

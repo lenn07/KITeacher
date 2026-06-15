@@ -11,8 +11,10 @@ import { useEffect, useState } from 'react'
 import type { Project } from '@shared/domain'
 import { PdfViewer } from '../reader/PdfViewer'
 import { ChatPane } from '../reader/ChatPane'
+import { NotesPane } from '../reader/NotesPane'
 import { useExplanation } from '../reader/useExplanation'
 import { useChat } from '../reader/useChat'
+import { useNotes } from '../reader/useNotes'
 import { releaseDocument } from '../reader/pdfImage'
 
 interface ProjectViewProps {
@@ -34,6 +36,8 @@ export function ProjectView({
   // Beim Öffnen dort weitermachen, wo man zuletzt war (sonst Seite 1).
   const [currentPage, setCurrentPage] = useState(Math.max(1, project.lastPage))
   const [error, setError] = useState<string | null>(null)
+  // Rechte Spalte: KI-Erklärung (Standard) oder eigene Notizen zur Folie.
+  const [rightPanel, setRightPanel] = useState<'ai' | 'notes'>('ai')
 
   // Das für die Bild-Erzeugung gecachte PDF-Dokument beim Schließen freigeben.
   useEffect(() => {
@@ -58,6 +62,8 @@ export function ProjectView({
 
   const chat = useChat({ projectId: project.id, pageNumber: currentPage })
 
+  const notes = useNotes({ projectId: project.id, pageNumber: currentPage })
+
   function handleLoaded(numPages: number): void {
     setPageCount(numPages)
     setCurrentPage((page) => Math.min(page, numPages))
@@ -79,6 +85,14 @@ export function ProjectView({
           ← Übersicht
         </button>
         <h2>{project.name}</h2>
+        {/* Oben rechts: rechte Spalte zwischen KI-Erklärung und Notizen umschalten. */}
+        <button
+          className="btn ghost panel-toggle"
+          onClick={() => setRightPanel((p) => (p === 'ai' ? 'notes' : 'ai'))}
+          title={rightPanel === 'ai' ? 'Notizen zur Folie öffnen' : 'Zur KI-Erklärung zurück'}
+        >
+          {rightPanel === 'ai' ? '✎ Notizen' : '✨ KI-Erklärung'}
+        </button>
       </header>
 
       {error && <p className="error reader-error">{error}</p>}
@@ -113,13 +127,17 @@ export function ProjectView({
         </section>
 
         <section className="reader-pane chat-pane">
-          <ChatPane
-            explanation={explanationState}
-            onExplain={explain}
-            onRegenerate={regenerate}
-            onOpenSettings={() => onOpenSettings(currentPage)}
-            chat={chat}
-          />
+          {rightPanel === 'ai' ? (
+            <ChatPane
+              explanation={explanationState}
+              onExplain={explain}
+              onRegenerate={regenerate}
+              onOpenSettings={() => onOpenSettings(currentPage)}
+              chat={chat}
+            />
+          ) : (
+            <NotesPane notes={notes} />
+          )}
         </section>
       </div>
     </main>

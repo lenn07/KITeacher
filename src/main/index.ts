@@ -8,6 +8,7 @@ import { registerProjectHandlers } from './projects/projectHandlers'
 import { registerSettingsHandlers } from './settings/settingsHandlers'
 import { registerPageHandlers } from './pages/pageHandlers'
 import { registerChatHandlers } from './chat/chatHandlers'
+import { registerNotesHandlers } from './notes/notesHandlers'
 
 function createWindow(): void {
   const mainWindow = new BrowserWindow({
@@ -62,6 +63,7 @@ app.whenReady().then(() => {
   registerSettingsHandlers()
   registerPageHandlers()
   registerChatHandlers()
+  registerNotesHandlers()
 
   createWindow()
 
