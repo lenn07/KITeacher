@@ -115,7 +115,15 @@ export function NotesPane({ notes }: { notes: UseNotesResult }): React.JSX.Eleme
 
     if (event.key === 'Enter' && !event.shiftKey) {
       event.preventDefault()
-      splitBlock(block.id, selectionStart)
+      // Logseq-Verhalten: Enter auf einem leeren, eingerückten Block rückt ihn
+      // aus, statt einen neuen Block anzulegen. Am Ende eines inneren Blocks legt
+      // der erste Enter einen leeren Block darunter an, der zweite hebt ihn so auf
+      // die obere Ebene.
+      if (block.content.length === 0 && block.indent > 0) {
+        changeIndent(block.id, -1)
+      } else {
+        splitBlock(block.id, selectionStart)
+      }
     } else if (event.key === 'Tab') {
       event.preventDefault()
       changeIndent(block.id, event.shiftKey ? -1 : 1)
