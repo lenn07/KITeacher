@@ -29,8 +29,12 @@ interface PdfViewerProps {
   pageNumber: number
   /** Meldet die tatsächliche Seitenzahl, sobald das Dokument geladen ist. */
   onLoaded: (numPages: number) => void
-  /** Meldet einen Lade-/Renderfehler an die Eltern-Komponente. */
-  onError: (message: string) => void
+  /**
+   * Meldet einen Lade-/Renderfehler an die Eltern-Komponente – oder `null`, wenn
+   * eine Seite wieder erfolgreich gerendert wurde (damit ein altes Fehlerbanner
+   * nach dem Weiterblättern nicht stehen bleibt).
+   */
+  onError: (message: string | null) => void
 }
 
 export function PdfViewer({
@@ -218,6 +222,8 @@ export function PdfViewer({
       canvas.width = viewport.width
       canvas.height = viewport.height
       ctx.drawImage(off, 0, 0)
+      // Erfolgreich gerendert: ein evtl. noch sichtbares Fehlerbanner löschen.
+      onError(null)
     }
 
     render().catch(() => {

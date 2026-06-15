@@ -18,9 +18,18 @@ import { releaseDocument } from '../reader/pdfImage'
 interface ProjectViewProps {
   project: Project
   onBack: () => void
+  /**
+   * Wechsel in die Einstellungen (z. B. wenn kein API-Key hinterlegt ist). Die
+   * aktuelle Seite wird mitgegeben, damit das Zurück wieder hier landet.
+   */
+  onOpenSettings: (page: number) => void
 }
 
-export function ProjectView({ project, onBack }: ProjectViewProps): React.JSX.Element {
+export function ProjectView({
+  project,
+  onBack,
+  onOpenSettings
+}: ProjectViewProps): React.JSX.Element {
   const [pageCount, setPageCount] = useState(project.pageCount)
   // Beim Öffnen dort weitermachen, wo man zuletzt war (sonst Seite 1).
   const [currentPage, setCurrentPage] = useState(Math.max(1, project.lastPage))
@@ -108,6 +117,7 @@ export function ProjectView({ project, onBack }: ProjectViewProps): React.JSX.El
             explanation={explanationState}
             onExplain={explain}
             onRegenerate={regenerate}
+            onOpenSettings={() => onOpenSettings(currentPage)}
             chat={chat}
           />
         </section>

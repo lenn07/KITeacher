@@ -18,7 +18,7 @@ import type { ChatMessage, ChatResult, SendChatMessageInput } from '@shared/doma
 import { chatMessageRepository, pageRepository } from '../db/repositories'
 import { settingsStore } from '../settings/settingsStore'
 import { anthropicProvider } from '../ai/anthropicProvider'
-import { describeAiError } from '../ai/errors'
+import { describeAiError, NO_API_KEY_MESSAGE } from '../ai/errors'
 
 /** Gerade laufende Chat-Anfragen je Seite (`projectId:pageNumber`). */
 const inFlight = new Set<string>()
@@ -33,14 +33,11 @@ async function send(input: SendChatMessageInput): Promise<ChatResult> {
   const { projectId, pageNumber, message, image } = input
 
   const text = message.trim()
-  if (!text) return { ok: false, message: 'Die Nachricht ist leer.' }
+  if (!text) return { ok: false, kind: 'ai', message: 'Die Nachricht ist leer.' }
 
   const apiKey = settingsStore.getApiKey()
   if (!apiKey) {
-    return {
-      ok: false,
-      message: 'Es ist kein API-Key hinterlegt. Bitte in den Einstellungen eintragen.'
-    }
+    return { ok: false, kind: 'no-key', message: NO_API_KEY_MESSAGE }
   }
 
   // Seite (und damit ihre id für den Verlauf) sicherstellen; trägt den
@@ -69,7 +66,7 @@ async function send(input: SendChatMessageInput): Promise<ChatResult> {
     chatMessageRepository.add({ pageId: page.id, role: 'assistant', content: answer })
     return { ok: true, messages: chatMessageRepository.listByPage(page.id) }
   } catch (error) {
-    return { ok: false, message: describeAiError(error) }
+    return { ok: false, kind: 'ai', message: describeAiError(error) }
   }
 }
 
@@ -83,7 +80,7 @@ export function registerChatHandlers(): void {
     async (_event, input: SendChatMessageInput): Promise<ChatResult> => {
       const key = `${input.projectId}:${input.pageNumber}`
       if (inFlight.has(key)) {
-        return { ok: false, message: 'Für diese Seite läuft bereits eine Anfrage.' }
+        return { ok: false, kind: 'ai', message: 'Für diese Seite läuft bereits eine Anfrage.' }
       }
       inFlight.add(key)
       try {

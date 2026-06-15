@@ -16,10 +16,35 @@ import { MarkdownView } from './MarkdownView'
 import type { ExplanationState } from './useExplanation'
 import type { UseChatResult } from './useChat'
 
+/**
+ * Meldung für den Fall „kein API-Key" – mit „Einstellungen" als anklickbarem,
+ * unterstrichenem Link. Der Text wird hier im UI komponiert und NICHT aus der
+ * Backend-Meldung geparst: So bleibt `kind: 'no-key'` die einzige Quelle der
+ * Wahrheit, und ein anderer Wortlaut im Backend kann den Link nicht
+ * stillschweigend entfernen.
+ */
+function NoApiKeyMessage({
+  onOpenSettings
+}: {
+  onOpenSettings: () => void
+}): React.JSX.Element {
+  return (
+    <>
+      Es ist kein API-Key hinterlegt. Bitte in den{' '}
+      <button type="button" className="link-button" onClick={onOpenSettings}>
+        Einstellungen
+      </button>{' '}
+      eintragen.
+    </>
+  )
+}
+
 interface ChatPaneProps {
   explanation: ExplanationState
   onExplain: () => void
   onRegenerate: () => void
+  /** Wechsel in die Einstellungen – angeboten, wenn kein API-Key hinterlegt ist. */
+  onOpenSettings: () => void
   chat: UseChatResult
 }
 
@@ -27,6 +52,7 @@ export function ChatPane({
   explanation,
   onExplain,
   onRegenerate,
+  onOpenSettings,
   chat
 }: ChatPaneProps): React.JSX.Element {
   const { messages, pending, status, error, send, clear } = chat
@@ -93,10 +119,20 @@ export function ChatPane({
         {explanation.status === 'error' && (
           <div className="chat-msg chat-msg-assistant">
             <div className="chat-bubble chat-bubble-error">
-              <p className="error">{explanation.message}</p>
-              <button className="btn ghost" onClick={onRegenerate}>
-                Erneut versuchen
-              </button>
+              <p className="error">
+                {explanation.kind === 'no-key' ? (
+                  <NoApiKeyMessage onOpenSettings={onOpenSettings} />
+                ) : (
+                  explanation.message
+                )}
+              </p>
+              {explanation.kind !== 'no-key' && (
+                <div className="chat-bubble-error-actions">
+                  <button className="btn ghost" onClick={onRegenerate}>
+                    Erneut versuchen
+                  </button>
+                </div>
+              )}
             </div>
           </div>
         )}
@@ -142,7 +178,15 @@ export function ChatPane({
         )}
       </div>
 
-      {error && <p className="error chat-error">{error}</p>}
+      {error && (
+        <p className="error chat-error">
+          {error.kind === 'no-key' ? (
+            <NoApiKeyMessage onOpenSettings={onOpenSettings} />
+          ) : (
+            error.message
+          )}
+        </p>
+      )}
 
       <div className="chat-input">
         <textarea

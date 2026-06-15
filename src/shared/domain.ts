@@ -67,6 +67,14 @@ export interface NewChatMessage {
 
 // --- KI-Erklärung (Etappe 6) ---------------------------------------------
 
+/**
+ * Art eines fehlgeschlagenen KI-Aufrufs (Etappe 8). Trennt den behebbaren
+ * Sonderfall „kein API-Key" von allgemeinen API-/Netzfehlern, damit die UI im
+ * ersten Fall direkt zu den Einstellungen führen kann statt nur „erneut
+ * versuchen" anzubieten.
+ */
+export type AiFailureKind = 'no-key' | 'ai'
+
 /** Unterstützte Bildformate für die Vision-Anfrage. */
 export type ImageMediaType = 'image/png' | 'image/jpeg'
 
@@ -97,7 +105,7 @@ export interface GenerateExplanationInput {
  */
 export type ExplanationResult =
   | { ok: true; page: Page }
-  | { ok: false; message: string }
+  | { ok: false; message: string; kind: AiFailureKind }
 
 // --- Chat pro Seite (Etappe 7) -------------------------------------------
 
@@ -123,4 +131,4 @@ export interface SendChatMessageInput {
  */
 export type ChatResult =
   | { ok: true; messages: ChatMessage[] }
-  | { ok: false; message: string }
+  | { ok: false; message: string; kind: AiFailureKind }

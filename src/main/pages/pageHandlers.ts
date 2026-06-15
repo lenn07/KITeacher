@@ -18,7 +18,7 @@ import type { ExplanationResult, GenerateExplanationInput } from '@shared/domain
 import { pageRepository } from '../db/repositories'
 import { settingsStore } from '../settings/settingsStore'
 import { anthropicProvider } from '../ai/anthropicProvider'
-import { describeAiError } from '../ai/errors'
+import { describeAiError, NO_API_KEY_MESSAGE } from '../ai/errors'
 
 /**
  * Gerade laufende Erzeugungen, je Seite (`projectId:pageNumber`). Verhindert,
@@ -33,10 +33,7 @@ async function generateAndCache(input: GenerateExplanationInput): Promise<Explan
 
   const apiKey = settingsStore.getApiKey()
   if (!apiKey) {
-    return {
-      ok: false,
-      message: 'Es ist kein API-Key hinterlegt. Bitte in den Einstellungen eintragen.'
-    }
+    return { ok: false, kind: 'no-key', message: NO_API_KEY_MESSAGE }
   }
 
   const { model, explanationLevel } = settingsStore.getSettings()
@@ -48,7 +45,7 @@ async function generateAndCache(input: GenerateExplanationInput): Promise<Explan
     const page = pageRepository.saveExplanation(projectId, pageNumber, explanation)
     return { ok: true, page }
   } catch (error) {
-    return { ok: false, message: describeAiError(error) }
+    return { ok: false, kind: 'ai', message: describeAiError(error) }
   }
 }
 
