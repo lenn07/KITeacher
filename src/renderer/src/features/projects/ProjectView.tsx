@@ -22,13 +22,21 @@ interface ProjectViewProps {
 
 export function ProjectView({ project, onBack }: ProjectViewProps): React.JSX.Element {
   const [pageCount, setPageCount] = useState(project.pageCount)
-  const [currentPage, setCurrentPage] = useState(1)
+  // Beim Öffnen dort weitermachen, wo man zuletzt war (sonst Seite 1).
+  const [currentPage, setCurrentPage] = useState(Math.max(1, project.lastPage))
   const [error, setError] = useState<string | null>(null)
 
   // Das für die Bild-Erzeugung gecachte PDF-Dokument beim Schließen freigeben.
   useEffect(() => {
     return () => releaseDocument(project.id)
   }, [project.id])
+
+  // Zuletzt geöffnete Seite pro Projekt merken (für das nächste Öffnen).
+  useEffect(() => {
+    window.api.projects.setLastPage(project.id, currentPage).catch(() => {
+      /* Nicht kritisch: betrifft nur, wo man beim nächsten Öffnen startet. */
+    })
+  }, [project.id, currentPage])
 
   const {
     state: explanationState,

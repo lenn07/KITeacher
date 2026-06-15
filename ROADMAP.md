@@ -109,6 +109,12 @@ Status-Legende: ⬜ offen · 🟡 läuft · ✅ fertig
   nach. Die Übersicht blendet die Angabe aus, solange sie `0` ist (z. B. vor dem
   ersten Öffnen).
 
+- **Zuletzt gelesene Seite:** Pro Projekt wird die zuletzt geöffnete Seite
+  gespeichert (`projects.last_page`, Migration v2, Default `1`). Beim Wiederöffnen
+  startet man dort statt auf Seite 1. Der Renderer merkt jede Seitennavigation per
+  `projects:setLastPage`; übersteigt der gemerkte Wert die (ggf. korrigierte)
+  Seitenzahl, klemmt der Viewer beim Laden auf die letzte gültige Seite.
+
 - **pdf.js-Worker:** `pdfjs-dist` lagert das Parsen in einen Web-Worker aus. Dessen
   URL kommt über Vites `?url`-Import (`pdf.worker.min.mjs?url`) → eigener Asset-Chunk,
   funktioniert in Dev und Build. Dafür `vite/client`-Typen via `src/renderer/src/env.d.ts`.

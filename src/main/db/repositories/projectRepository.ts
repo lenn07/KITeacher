@@ -11,6 +11,7 @@ interface ProjectRow {
   name: string
   pdf_path: string
   page_count: number
+  last_page: number
   created_at: string
 }
 
@@ -20,6 +21,7 @@ function toProject(row: ProjectRow): Project {
     name: row.name,
     pdfPath: row.pdf_path,
     pageCount: row.page_count,
+    lastPage: row.last_page,
     createdAt: row.created_at
   }
 }
@@ -57,6 +59,11 @@ export const projectRepository = {
   /** Trägt die tatsächliche Seitenzahl nach (beim Import noch 0). */
   setPageCount(id: number, pageCount: number): void {
     getDb().prepare('UPDATE projects SET page_count = ? WHERE id = ?').run(pageCount, id)
+  },
+
+  /** Merkt sich die zuletzt geöffnete Seite eines Projekts. */
+  setLastPage(id: number, lastPage: number): void {
+    getDb().prepare('UPDATE projects SET last_page = ? WHERE id = ?').run(lastPage, id)
   },
 
   /** Löscht ein Projekt; Seiten und Chats verschwinden per ON DELETE CASCADE. */

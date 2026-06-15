@@ -53,6 +53,15 @@ export const migrations: Migration[] = [
         CREATE INDEX idx_chat_messages_page  ON chat_messages(page_id);
       `)
     }
+  },
+  {
+    version: 2,
+    name: 'projekt-zuletzt-gelesene-seite',
+    up: (db) => {
+      // Merkt sich pro Projekt die zuletzt geöffnete Seite, damit man beim
+      // Wiederöffnen dort weitermacht statt auf Seite 1. Bestand: Default 1.
+      db.exec(`ALTER TABLE projects ADD COLUMN last_page INTEGER NOT NULL DEFAULT 1;`)
+    }
   }
 ]
 
