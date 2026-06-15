@@ -16,6 +16,31 @@ import { MarkdownView } from './MarkdownView'
 import type { ExplanationState } from './useExplanation'
 import type { UseChatResult } from './useChat'
 
+/**
+ * Zeigt eine Fehlermeldung an, in der das Wort „Einstellungen" ein anklickbarer,
+ * unterstrichener Link ist (statt eines separaten Knopfs). Kommt das Wort nicht
+ * vor, wird der Text unverändert ausgegeben.
+ */
+function ErrorWithSettingsLink({
+  message,
+  onOpenSettings
+}: {
+  message: string
+  onOpenSettings: () => void
+}): React.JSX.Element {
+  const [before, ...rest] = message.split('Einstellungen')
+  if (rest.length === 0) return <>{message}</>
+  return (
+    <>
+      {before}
+      <button type="button" className="link-button" onClick={onOpenSettings}>
+        Einstellungen
+      </button>
+      {rest.join('Einstellungen')}
+    </>
+  )
+}
+
 interface ChatPaneProps {
   explanation: ExplanationState
   onExplain: () => void
@@ -96,18 +121,23 @@ export function ChatPane({
         {explanation.status === 'error' && (
           <div className="chat-msg chat-msg-assistant">
             <div className="chat-bubble chat-bubble-error">
-              <p className="error">{explanation.message}</p>
-              <div className="chat-bubble-error-actions">
+              <p className="error">
                 {explanation.kind === 'no-key' ? (
-                  <button className="btn primary" onClick={onOpenSettings}>
-                    Zu den Einstellungen
-                  </button>
+                  <ErrorWithSettingsLink
+                    message={explanation.message}
+                    onOpenSettings={onOpenSettings}
+                  />
                 ) : (
+                  explanation.message
+                )}
+              </p>
+              {explanation.kind !== 'no-key' && (
+                <div className="chat-bubble-error-actions">
                   <button className="btn ghost" onClick={onRegenerate}>
                     Erneut versuchen
                   </button>
-                )}
-              </div>
+                </div>
+              )}
             </div>
           </div>
         )}
@@ -154,14 +184,13 @@ export function ChatPane({
       </div>
 
       {error && (
-        <div className="chat-error-bar">
-          <span className="error chat-error">{error.message}</span>
-          {error.kind === 'no-key' && (
-            <button className="btn ghost chat-error-action" onClick={onOpenSettings}>
-              Zu den Einstellungen
-            </button>
+        <p className="error chat-error">
+          {error.kind === 'no-key' ? (
+            <ErrorWithSettingsLink message={error.message} onOpenSettings={onOpenSettings} />
+          ) : (
+            error.message
           )}
-        </div>
+        </p>
       )}
 
       <div className="chat-input">
