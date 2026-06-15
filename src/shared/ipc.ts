@@ -26,6 +26,7 @@ export const IpcChannels = {
   projectsGet: 'projects:get',
   projectsReadPdf: 'projects:readPdf',
   projectsSetPageCount: 'projects:setPageCount',
+  projectsSetLastPage: 'projects:setLastPage',
   settingsGet: 'settings:get',
   settingsSave: 'settings:save',
   settingsSetApiKey: 'settings:setApiKey',
@@ -63,6 +64,11 @@ export interface ProjectsApi {
    * PDF-Viewer aufgerufen, sobald pdf.js das Dokument geladen hat.
    */
   setPageCount: (id: number, pageCount: number) => Promise<void>
+  /**
+   * Merkt sich die zuletzt geöffnete Seite, damit man beim Wiederöffnen des
+   * Projekts dort weitermacht statt auf Seite 1.
+   */
+  setLastPage: (id: number, lastPage: number) => Promise<void>
 }
 
 /**

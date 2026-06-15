@@ -37,6 +37,10 @@ export function registerProjectHandlers(): void {
     projectRepository.setPageCount(id, pageCount)
   })
 
+  ipcMain.handle(IpcChannels.projectsSetLastPage, (_event, id: number, lastPage: number) => {
+    projectRepository.setLastPage(id, lastPage)
+  })
+
   ipcMain.handle(IpcChannels.projectsDelete, (_event, id: number) => {
     // Erst die PDF-Kopie löschen, dann den DB-Eintrag (Seiten/Chats per CASCADE).
     const project = projectRepository.getById(id)

@@ -13,7 +13,9 @@ const api: KiTeacherApi = {
     getById: (id) => ipcRenderer.invoke(IpcChannels.projectsGet, id),
     readPdf: (id) => ipcRenderer.invoke(IpcChannels.projectsReadPdf, id),
     setPageCount: (id, pageCount) =>
-      ipcRenderer.invoke(IpcChannels.projectsSetPageCount, id, pageCount)
+      ipcRenderer.invoke(IpcChannels.projectsSetPageCount, id, pageCount),
+    setLastPage: (id, lastPage) =>
+      ipcRenderer.invoke(IpcChannels.projectsSetLastPage, id, lastPage)
   },
   settings: {
     get: () => ipcRenderer.invoke(IpcChannels.settingsGet),

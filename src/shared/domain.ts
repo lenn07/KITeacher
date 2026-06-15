@@ -18,6 +18,8 @@ export interface Project {
   pdfPath: string
   /** Anzahl Seiten des PDFs (0 bis bekannt). */
   pageCount: number
+  /** Zuletzt geöffnete Seite (1-basiert); beim Wiederöffnen startet man hier. */
+  lastPage: number
   /** ISO-8601-Zeitstempel der Erstellung. */
   createdAt: string
 }
