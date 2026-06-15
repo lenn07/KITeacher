@@ -12,15 +12,21 @@
  * UI erhalten (siehe `send` → boolescher Rückgabewert) und es wird nichts gespeichert.
  */
 import { useCallback, useEffect, useRef, useState } from 'react'
-import type { ChatMessage } from '@shared/domain'
+import type { AiFailureKind, ChatMessage } from '@shared/domain'
 import { renderPageImage } from './pdfImage'
+
+/** Fehler der letzten Rückfrage – mit `kind`, damit die UI „kein Key" gesondert behandeln kann. */
+export interface ChatError {
+  message: string
+  kind: AiFailureKind
+}
 
 export interface UseChatResult {
   messages: ChatMessage[]
   /** Aktuell gesendete Frage, solange die KI antwortet (sonst `null`). */
   pending: string | null
   status: 'idle' | 'sending'
-  error: string | null
+  error: ChatError | null
   /** Sendet eine Frage; `true` bei Erfolg (die UI leert dann das Eingabefeld). */
   send: (message: string) => Promise<boolean>
   /** Löscht den gesamten Verlauf der Seite. */
@@ -36,7 +42,7 @@ export function useChat({ projectId, pageNumber }: UseChatArgs): UseChatResult {
   const [messages, setMessages] = useState<ChatMessage[]>([])
   const [pending, setPending] = useState<string | null>(null)
   const [status, setStatus] = useState<'idle' | 'sending'>('idle')
-  const [error, setError] = useState<string | null>(null)
+  const [error, setError] = useState<ChatError | null>(null)
 
   // Verhindert, dass eine spät eintreffende Antwort einer alten Seite den
   // Verlauf der inzwischen geöffneten Seite überschreibt.
@@ -80,11 +86,11 @@ export function useChat({ projectId, pageNumber }: UseChatArgs): UseChatResult {
           setMessages(result.messages)
           return true
         }
-        setError(result.message)
+        setError({ message: result.message, kind: result.kind })
         return false
       } catch {
         if (requestRef.current === token) {
-          setError('Die Nachricht konnte nicht gesendet werden.')
+          setError({ message: 'Die Nachricht konnte nicht gesendet werden.', kind: 'ai' })
         }
         return false
       } finally {

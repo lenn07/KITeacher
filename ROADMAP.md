@@ -59,7 +59,17 @@ Status-Legende: ⬜ offen · 🟡 läuft · ✅ fertig
    Öffnen noch im Voraus) – nur noch per „Seite erklären"-Knopf. Das Prefetching
    und der zugehörige Einstellungs-Schalter wurden komplett entfernt
    (`AppSettings` ohne `prefetchEnabled`). Build & Typecheck grün.
-8. ⬜ **Feinschliff** – Ladezustände, Fehlerbehandlung (kein Key / API-Fehler), UI-Politur.
+8. ✅ **Feinschliff** – Fehlerbehandlung verfeinert: fehlgeschlagene KI-Aufrufe
+   tragen jetzt einen `kind` (`'no-key' | 'ai'`, `shared/domain.ts`). Der
+   Sonderfall „kein API-Key" wird dadurch vom allgemeinen API-Fehler getrennt:
+   Statt nur „Erneut versuchen" bietet die UI einen Knopf „Zu den Einstellungen"
+   – sowohl an der Erklärungs-Fehlerblase als auch unter einer gescheiterten
+   Rückfrage. Dafür kann man aus einem geöffneten Projekt in die Einstellungen
+   wechseln und kehrt danach an dieselbe Seite zurück (App-Navigation merkt sich
+   die Herkunft, `App.tsx`). „Kein-Key"-Meldung zentral in `main/ai/errors.ts`
+   (`NO_API_KEY_MESSAGE`, vorher in beiden Handlern dupliziert). UI-Politur:
+   ungenutztes `.explain-*`-CSS (Rest aus Etappe 6, durch den Chat ersetzt) und
+   doppelte `.spinner`/`@keyframes spin` entfernt. Build & Typecheck grün.
 
 ## Notizen / Abweichungen
 
@@ -73,6 +83,13 @@ Status-Legende: ⬜ offen · 🟡 läuft · ✅ fertig
 - **AIProvider:** `testConnection` (Etappe 5), `explainPage` (Etappe 6, Vision)
   und `chat` (Etappe 7, Vision + Verlauf) im Interface `main/ai/aiProvider.ts`. Die
   Fehlerübersetzung (SDK → deutsche Meldung) liegt gemeinsam in `main/ai/errors.ts`.
+
+- **Fehler-`kind` (Etappe 8):** `ExplanationResult`/`ChatResult` liefern bei
+  Misserfolg neben der Meldung ein `kind` (`'no-key' | 'ai'`). Nur so kann die UI
+  den behebbaren Fall „kein API-Key" gezielt behandeln (Knopf in die
+  Einstellungen) statt nur generisch „erneut versuchen". Die Handler setzen das
+  `kind` an der Quelle (no-key vor dem KI-Aufruf, sonst `'ai'` im catch); die
+  Renderer-Hooks (`useExplanation`, `useChat`) reichen es bis in die `ChatPane`.
 
 - **Chat-Kontext:** Der Chat schickt bei jeder Rückfrage das Seitenbild und – als
   erster Turn – den gecachten Erklärtext mit (ein kurzer Bestätigungs-Turn der KI

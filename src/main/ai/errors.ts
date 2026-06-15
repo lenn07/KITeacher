@@ -6,6 +6,14 @@
  */
 import { Anthropic } from './anthropicProvider'
 
+/**
+ * Meldung für den behebbaren Sonderfall „kein API-Key hinterlegt" (Etappe 8).
+ * An einer Stelle, weil Seiten-Erklärung und Chat sie gleich verwenden; die UI
+ * verknüpft sie mit `kind: 'no-key'` und einem Weg zu den Einstellungen.
+ */
+export const NO_API_KEY_MESSAGE =
+  'Es ist kein API-Key hinterlegt. Bitte in den Einstellungen eintragen.'
+
 export function describeAiError(error: unknown): string {
   if (error instanceof Anthropic.AuthenticationError) {
     return 'Der API-Key ist ungültig. Bitte prüfe deine Eingabe in den Einstellungen.'

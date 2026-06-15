@@ -542,6 +542,11 @@ body {
   margin: 0;
 }
 
+.chat-bubble-error-actions {
+  display: flex;
+  gap: 0.4rem;
+}
+
 /* „KI denkt nach…"-Blase. */
 .chat-typing {
   display: flex;
@@ -554,9 +559,23 @@ body {
   height: 1rem;
 }
 
-.chat-error {
+/* Fehlerzeile unter dem Verlauf (gescheiterte Rückfrage). */
+.chat-error-bar {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
   margin: 0 1rem 0.4rem;
+}
+
+.chat-error {
+  margin: 0;
   font-size: 0.85rem;
+}
+
+.chat-error-action {
+  flex-shrink: 0;
+  padding: 0.2rem 0.6rem;
+  font-size: 0.8rem;
 }
 
 /* Eingabezeile: Textfeld + Senden-Button. */
@@ -587,164 +606,6 @@ body {
 
 .chat-input .btn {
   align-self: flex-end;
-}
-
-.spinner {
-  width: 1.6rem;
-  height: 1.6rem;
-  border: 2px solid rgba(128, 128, 128, 0.3);
-  border-top-color: rgba(128, 128, 128, 0.85);
-  border-radius: 50%;
-  animation: spin 0.8s linear infinite;
-}
-
-@keyframes spin {
-  to {
-    transform: rotate(360deg);
-  }
-}
-
-/* Fertiger Erklärtext: scrollbar, links der Text, unten die Aktionen. */
-.explain-content {
-  flex: 1;
-  min-height: 0;
-  display: flex;
-  flex-direction: column;
-}
-
-.explain-text {
-  flex: 1;
-  min-height: 0;
-  overflow: auto;
-  overscroll-behavior: contain;
-  padding: 1.5rem;
-  line-height: 1.6;
-}
-
-.explain-text h1,
-.explain-text h2,
-.explain-text h3,
-.explain-text h4,
-.explain-text h5,
-.explain-text h6 {
-  margin: 1.2rem 0 0.5rem;
-  line-height: 1.3;
-}
-
-.explain-text h1 {
-  font-size: 1.35rem;
-}
-.explain-text h2 {
-  font-size: 1.2rem;
-}
-.explain-text h3 {
-  font-size: 1.08rem;
-}
-.explain-text h4,
-.explain-text h5,
-.explain-text h6 {
-  font-size: 1rem;
-}
-
-.explain-text > :first-child {
-  margin-top: 0;
-}
-
-.explain-text p {
-  margin: 0 0 0.85rem;
-}
-
-.explain-text ul,
-.explain-text ol {
-  margin: 0 0 0.85rem;
-  padding-left: 1.4rem;
-}
-
-.explain-text li {
-  margin: 0.2rem 0;
-}
-
-.explain-text li > ul,
-.explain-text li > ol {
-  margin: 0.2rem 0;
-}
-
-/* Trennlinie (---). */
-.explain-text hr {
-  border: none;
-  border-top: 1px solid rgba(128, 128, 128, 0.3);
-  margin: 1.4rem 0;
-}
-
-/* Links öffnen im Standardbrowser (siehe setWindowOpenHandler im Main). */
-.explain-text a {
-  color: #4a90d9;
-}
-
-/* Inline-Code und Code-Blöcke. */
-.explain-text code {
-  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-  font-size: 0.88em;
-  background: rgba(128, 128, 128, 0.15);
-  padding: 0.1rem 0.35rem;
-  border-radius: 4px;
-}
-
-.explain-text pre {
-  margin: 0 0 0.85rem;
-  padding: 0.8rem 1rem;
-  background: rgba(128, 128, 128, 0.12);
-  border-radius: 6px;
-  overflow-x: auto;
-}
-
-.explain-text pre code {
-  background: none;
-  padding: 0;
-  font-size: 0.85rem;
-}
-
-/* Zitate. */
-.explain-text blockquote {
-  margin: 0 0 0.85rem;
-  padding: 0.2rem 0 0.2rem 1rem;
-  border-left: 3px solid rgba(128, 128, 128, 0.4);
-  opacity: 0.85;
-}
-
-/* Tabellen (GFM). */
-.explain-text table {
-  border-collapse: collapse;
-  margin: 0 0 0.85rem;
-  display: block;
-  overflow-x: auto;
-  max-width: 100%;
-}
-
-.explain-text th,
-.explain-text td {
-  border: 1px solid rgba(128, 128, 128, 0.3);
-  padding: 0.4rem 0.6rem;
-  text-align: left;
-}
-
-.explain-text th {
-  background: rgba(128, 128, 128, 0.12);
-}
-
-/* Abgesetzte Formeln dürfen horizontal scrollen statt das Layout zu sprengen. */
-.explain-text .katex-display {
-  overflow-x: auto;
-  overflow-y: hidden;
-  padding: 0.2rem 0;
-}
-
-.explain-actions {
-  flex-shrink: 0;
-  display: flex;
-  justify-content: flex-end;
-  padding: 0.6rem 1rem;
-  border-top: 1px solid rgba(128, 128, 128, 0.25);
 }
 
 /* --- Einstellungen --------------------------------------------------------- */

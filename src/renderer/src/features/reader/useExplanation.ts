@@ -10,13 +10,14 @@
  * passiert ausschließlich, wenn man ihn auslöst.
  */
 import { useCallback, useEffect, useRef, useState } from 'react'
+import type { AiFailureKind } from '@shared/domain'
 import { renderPageImage } from './pdfImage'
 
 export type ExplanationState =
   | { status: 'idle' }
   | { status: 'loading' }
   | { status: 'ready'; text: string }
-  | { status: 'error'; message: string }
+  | { status: 'error'; message: string; kind: AiFailureKind }
 
 interface UseExplanationArgs {
   projectId: number
@@ -57,11 +58,16 @@ export function useExplanation({
         if (result.ok) {
           setState({ status: 'ready', text: result.page.explanation ?? '' })
         } else {
-          setState({ status: 'error', message: result.message })
+          setState({ status: 'error', message: result.message, kind: result.kind })
         }
       } catch {
         if (requestRef.current === token) {
-          setState({ status: 'error', message: 'Die Seite konnte nicht erklärt werden.' })
+          // Fehler schon im Renderer (z. B. Seite ließ sich nicht zum Bild rendern).
+          setState({
+            status: 'error',
+            message: 'Die Seite konnte nicht erklärt werden.',
+            kind: 'ai'
+          })
         }
       }
     },

@@ -20,6 +20,8 @@ interface ChatPaneProps {
   explanation: ExplanationState
   onExplain: () => void
   onRegenerate: () => void
+  /** Wechsel in die Einstellungen – angeboten, wenn kein API-Key hinterlegt ist. */
+  onOpenSettings: () => void
   chat: UseChatResult
 }
 
@@ -27,6 +29,7 @@ export function ChatPane({
   explanation,
   onExplain,
   onRegenerate,
+  onOpenSettings,
   chat
 }: ChatPaneProps): React.JSX.Element {
   const { messages, pending, status, error, send, clear } = chat
@@ -94,9 +97,17 @@ export function ChatPane({
           <div className="chat-msg chat-msg-assistant">
             <div className="chat-bubble chat-bubble-error">
               <p className="error">{explanation.message}</p>
-              <button className="btn ghost" onClick={onRegenerate}>
-                Erneut versuchen
-              </button>
+              <div className="chat-bubble-error-actions">
+                {explanation.kind === 'no-key' ? (
+                  <button className="btn primary" onClick={onOpenSettings}>
+                    Zu den Einstellungen
+                  </button>
+                ) : (
+                  <button className="btn ghost" onClick={onRegenerate}>
+                    Erneut versuchen
+                  </button>
+                )}
+              </div>
             </div>
           </div>
         )}
@@ -142,7 +153,16 @@ export function ChatPane({
         )}
       </div>
 
-      {error && <p className="error chat-error">{error}</p>}
+      {error && (
+        <div className="chat-error-bar">
+          <span className="error chat-error">{error.message}</span>
+          {error.kind === 'no-key' && (
+            <button className="btn ghost chat-error-action" onClick={onOpenSettings}>
+              Zu den Einstellungen
+            </button>
+          )}
+        </div>
+      )}
 
       <div className="chat-input">
         <textarea
