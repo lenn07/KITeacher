@@ -17,26 +17,24 @@ import type { ExplanationState } from './useExplanation'
 import type { UseChatResult } from './useChat'
 
 /**
- * Zeigt eine Fehlermeldung an, in der das Wort „Einstellungen" ein anklickbarer,
- * unterstrichener Link ist (statt eines separaten Knopfs). Kommt das Wort nicht
- * vor, wird der Text unverändert ausgegeben.
+ * Meldung für den Fall „kein API-Key" – mit „Einstellungen" als anklickbarem,
+ * unterstrichenem Link. Der Text wird hier im UI komponiert und NICHT aus der
+ * Backend-Meldung geparst: So bleibt `kind: 'no-key'` die einzige Quelle der
+ * Wahrheit, und ein anderer Wortlaut im Backend kann den Link nicht
+ * stillschweigend entfernen.
  */
-function ErrorWithSettingsLink({
-  message,
+function NoApiKeyMessage({
   onOpenSettings
 }: {
-  message: string
   onOpenSettings: () => void
 }): React.JSX.Element {
-  const [before, ...rest] = message.split('Einstellungen')
-  if (rest.length === 0) return <>{message}</>
   return (
     <>
-      {before}
+      Es ist kein API-Key hinterlegt. Bitte in den{' '}
       <button type="button" className="link-button" onClick={onOpenSettings}>
         Einstellungen
-      </button>
-      {rest.join('Einstellungen')}
+      </button>{' '}
+      eintragen.
     </>
   )
 }
@@ -123,10 +121,7 @@ export function ChatPane({
             <div className="chat-bubble chat-bubble-error">
               <p className="error">
                 {explanation.kind === 'no-key' ? (
-                  <ErrorWithSettingsLink
-                    message={explanation.message}
-                    onOpenSettings={onOpenSettings}
-                  />
+                  <NoApiKeyMessage onOpenSettings={onOpenSettings} />
                 ) : (
                   explanation.message
                 )}
@@ -186,7 +181,7 @@ export function ChatPane({
       {error && (
         <p className="error chat-error">
           {error.kind === 'no-key' ? (
-            <ErrorWithSettingsLink message={error.message} onOpenSettings={onOpenSettings} />
+            <NoApiKeyMessage onOpenSettings={onOpenSettings} />
           ) : (
             error.message
           )}
