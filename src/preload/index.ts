@@ -5,10 +5,19 @@ import { IpcChannels, type KiTeacherApi } from '@shared/ipc'
 // Implementierung der App-API, die dem Renderer kontrolliert freigegeben wird.
 const api: KiTeacherApi = {
   getAppVersion: () => ipcRenderer.invoke(IpcChannels.appGetVersion),
+  folders: {
+    list: (parentId) => ipcRenderer.invoke(IpcChannels.foldersList, parentId),
+    listAll: () => ipcRenderer.invoke(IpcChannels.foldersListAll),
+    create: (name, parentId) => ipcRenderer.invoke(IpcChannels.foldersCreate, name, parentId),
+    rename: (id, name) => ipcRenderer.invoke(IpcChannels.foldersRename, id, name),
+    move: (id, parentId) => ipcRenderer.invoke(IpcChannels.foldersMove, id, parentId),
+    delete: (id) => ipcRenderer.invoke(IpcChannels.foldersDelete, id)
+  },
   projects: {
-    list: () => ipcRenderer.invoke(IpcChannels.projectsList),
-    import: () => ipcRenderer.invoke(IpcChannels.projectsImport),
+    list: (folderId) => ipcRenderer.invoke(IpcChannels.projectsList, folderId),
+    import: (folderId) => ipcRenderer.invoke(IpcChannels.projectsImport, folderId),
     rename: (id, name) => ipcRenderer.invoke(IpcChannels.projectsRename, id, name),
+    move: (id, folderId) => ipcRenderer.invoke(IpcChannels.projectsMove, id, folderId),
     delete: (id) => ipcRenderer.invoke(IpcChannels.projectsDelete, id),
     getById: (id) => ipcRenderer.invoke(IpcChannels.projectsGet, id),
     readPdf: (id) => ipcRenderer.invoke(IpcChannels.projectsReadPdf, id),

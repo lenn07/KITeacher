@@ -12,9 +12,13 @@ import { projectRepository } from '../db/repositories'
 import { importPdfProject } from './projectImport'
 
 export function registerProjectHandlers(): void {
-  ipcMain.handle(IpcChannels.projectsList, () => projectRepository.list())
+  ipcMain.handle(IpcChannels.projectsList, (_event, folderId: number | null) =>
+    projectRepository.listByFolder(folderId)
+  )
 
-  ipcMain.handle(IpcChannels.projectsImport, () => importPdfProject())
+  ipcMain.handle(IpcChannels.projectsImport, (_event, folderId: number | null) =>
+    importPdfProject(folderId)
+  )
 
   ipcMain.handle(IpcChannels.projectsGet, (_event, id: number) =>
     projectRepository.getById(id)
@@ -24,6 +28,14 @@ export function registerProjectHandlers(): void {
     projectRepository.rename(id, name.trim())
     return projectRepository.getById(id)
   })
+
+  ipcMain.handle(
+    IpcChannels.projectsMove,
+    (_event, id: number, folderId: number | null) => {
+      projectRepository.move(id, folderId)
+      return projectRepository.getById(id)
+    }
+  )
 
   ipcMain.handle(IpcChannels.projectsReadPdf, (_event, id: number) => {
     const project = projectRepository.getById(id)

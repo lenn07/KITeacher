@@ -5,7 +5,7 @@ Split-Screen: links das PDF, rechts ein KI-Erklärtext zur aktuellen Seite + Cha
 Rückfragen. Alles läuft lokal, kein Login – jeder Nutzer hinterlegt seinen eigenen
 Claude API-Key.
 
-Mehr zum *Was & Wie*: [CLAUDE.md](CLAUDE.md) · Fortschritt: [ROADMAP.md](ROADMAP.md).
+Mehr zum *Was & Wie*: [CLAUDE.md](CLAUDE.md) · Entscheidungen & Notizen: [DECISIONS.md](DECISIONS.md).
 
 ## Tech-Stack
 

@@ -17,7 +17,9 @@ import type { Project } from '@shared/domain'
 import { pdfStorageDir } from '../storage/paths'
 import { projectRepository } from '../db/repositories'
 
-export async function importPdfProject(): Promise<Project | null> {
+export async function importPdfProject(
+  folderId: number | null
+): Promise<Project | null> {
   const result = await dialog.showOpenDialog({
     title: 'PDF auswählen',
     buttonLabel: 'Importieren',
@@ -32,5 +34,5 @@ export async function importPdfProject(): Promise<Project | null> {
   copyFileSync(sourcePath, targetPath)
 
   const name = basename(sourcePath, extname(sourcePath))
-  return projectRepository.create({ name, pdfPath: targetPath, pageCount: 0 })
+  return projectRepository.create({ name, folderId, pdfPath: targetPath, pageCount: 0 })
 }
