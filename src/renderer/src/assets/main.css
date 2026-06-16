@@ -759,21 +759,82 @@ body {
   padding: 0.9rem 1rem;
 }
 
-/* Eine Block-Zeile: Aufzählungspunkt + Inhalt (Einrückung via margin-left inline). */
+/* Eine Block-Zeile: Aufzählungspunkt + Inhalt (Einrückung via padding-left inline).
+   position: relative dient als Bezug für die absoluten Einrückungs-Linien. */
 .note-block {
+  position: relative;
   display: flex;
   align-items: flex-start;
   gap: 0.5rem;
   padding: 0.05rem 0;
 }
 
+/* Senkrechte Führungslinie einer Einrückungsebene (eine je Vorfahr); über die
+   Zeilen hinweg fließen sie zu durchgehenden Linien zusammen. Das `left` setzt
+   der Renderer je Ebene (Schrittweite = INDENT_STEP_REM). Die sichtbare Linie
+   liegt mittig in einer breiteren, klickbaren Trefferfläche. */
+.note-guide {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 12px;
+  transform: translateX(-6px);
+  cursor: pointer;
+}
+
+.note-guide::before {
+  content: '';
+  position: absolute;
+  left: 6px;
+  top: 0;
+  bottom: 0;
+  width: 1px;
+  background: rgba(128, 128, 128, 0.3);
+}
+
+/* Hover hebt den ganzen Strich hervor: der Renderer setzt die Klasse auf alle
+   Abschnitte derselben Linie (gleicher Elternblock), nicht nur die Zeile. */
+.note-guide-hover::before {
+  background: rgba(128, 128, 128, 0.65);
+}
+
 .note-bullet {
+  position: relative;
   flex-shrink: 0;
   width: 6px;
   height: 6px;
   margin-top: 0.6rem;
   border-radius: 50%;
   background: rgba(128, 128, 128, 0.55);
+}
+
+/* Punkt eines Blocks mit Unterblöcken: klickbar (auf-/zuklappen), größere
+   Trefferfläche per unsichtbarem ::before. */
+.note-bullet-parent {
+  cursor: pointer;
+}
+
+.note-bullet-parent::before {
+  content: '';
+  position: absolute;
+  inset: -6px;
+  border-radius: 50%;
+}
+
+/* Hover (auf der gesamten Trefferfläche) zeigt den Hof schon vor dem Klick. */
+.note-bullet-parent:hover {
+  box-shadow: 0 0 0 4px rgba(128, 128, 128, 0.18);
+}
+
+/* Eingeklappter Block: Punkt mit Hof (wie in Logseq), signalisiert Verborgenes. */
+.note-bullet-collapsed {
+  box-shadow: 0 0 0 4px rgba(128, 128, 128, 0.2);
+}
+
+/* Trennlinien-Blöcke (`---`) bekommen keinen Punkt – Platz bleibt für die
+   Ausrichtung erhalten (visibility statt display). */
+.note-bullet-hidden {
+  visibility: hidden;
 }
 
 /* Textfeld beim Bearbeiten – wächst mit dem Inhalt (Höhe per JS gesetzt). */
@@ -809,8 +870,9 @@ body {
   background: rgba(128, 128, 128, 0.06);
 }
 
+/* Leerer Block: kein Text, kein Punkt – nur eine klickbare Zeile zum Schreiben. */
 .note-empty {
-  font-size: 0.85rem;
+  min-height: 1.5rem;
 }
 
 /* --- Einstellungen --------------------------------------------------------- */

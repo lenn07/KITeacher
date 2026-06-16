@@ -25,10 +25,29 @@ function autoGrow(el: HTMLTextAreaElement): void {
   el.style.height = `${el.scrollHeight}px`
 }
 
+/** Schrittweite einer Einrückungsebene (muss zu `.note-guide` im CSS passen). */
+const INDENT_STEP_REM = 1.5
+
+/**
+ * Ob der Block-Inhalt eine Markdown-Trennlinie ist (`---`, `***`, `___`). Solche
+ * Blöcke werden als `<hr>` gerendert und bekommen wie in Logseq keinen
+ * Aufzählungspunkt.
+ */
+function isHorizontalRule(content: string): boolean {
+  const t = content.trim().replace(/\s+/g, '')
+  return /^(-{3,}|\*{3,}|_{3,})$/.test(t)
+}
+
 export function NotesPane({ notes }: { notes: UseNotesResult }): React.JSX.Element {
   const { blocks, setBlocks } = notes
   // Welcher Block wird gerade bearbeitet (Textfeld) statt gerendert?
   const [activeId, setActiveId] = useState<string | null>(null)
+  // Eingeklappte Blöcke (deren Unterblöcke verborgen sind). Reiner Ansichts-State
+  // per Client-`id` – wird nicht persistiert (die `id`s sind ohnehin nur lokal).
+  const [collapsed, setCollapsed] = useState<Set<string>>(() => new Set())
+  // Überfahrene Einrückungs-Linie, identifiziert über ihren Elternblock – damit
+  // der ganze Strich (alle Abschnitte) gehighlightet wird, nicht nur eine Zeile.
+  const [hoveredLine, setHoveredLine] = useState<string | null>(null)
   const textareaRef = useRef<HTMLTextAreaElement | null>(null)
   // Gewünschte Cursor-Position nach dem Fokuswechsel: Zahl, oder -1 = ans Ende.
   const caretRef = useRef<number | null>(null)
@@ -104,6 +123,54 @@ export function NotesPane({ notes }: { notes: UseNotesResult }): React.JSX.Eleme
     return true
   }
 
+  /** Klick auf den Punkt: diesen Block (seinen Unterbaum) ein-/ausklappen. */
+  function toggleBlock(id: string): void {
+    setCollapsed((prev) => {
+      const next = new Set(prev)
+      if (next.has(id)) next.delete(id)
+      else next.add(id)
+      return next
+    })
+    setActiveId(null)
+  }
+
+  /** Index des Elternblocks (nächster Block oberhalb mit genau Einrückung `level`). */
+  function parentIndexAt(index: number, level: number): number {
+    for (let p = index; p >= 0; p--) if (blocks[p].indent === level) return p
+    return -1
+  }
+
+  /**
+   * Klick auf eine Einrückungs-Linie der Ebene `level` (auf der Zeile `index`):
+   * alle direkten Unterblöcke des zugehörigen Elternblocks gleichzeitig ein-/
+   * ausklappen. Sind schon alle eingeklappt, wird ausgeklappt – sonst eingeklappt.
+   */
+  function toggleGuide(index: number, level: number): void {
+    const parent = parentIndexAt(index, level)
+    if (parent < 0) return
+
+    // Direkte Kinder (Einrückung level+1) innerhalb des Elternteilbaums, die
+    // selbst Unterblöcke haben (nur die lassen sich klappen).
+    const childIds: string[] = []
+    for (let j = parent + 1; j < blocks.length && blocks[j].indent > level; j++) {
+      if (blocks[j].indent !== level + 1) continue
+      const hasChildren = j + 1 < blocks.length && blocks[j + 1].indent > blocks[j].indent
+      if (hasChildren) childIds.push(blocks[j].id)
+    }
+    if (childIds.length === 0) return
+
+    setCollapsed((prev) => {
+      const next = new Set(prev)
+      const allCollapsed = childIds.every((id) => next.has(id))
+      for (const id of childIds) {
+        if (allCollapsed) next.delete(id)
+        else next.add(id)
+      }
+      return next
+    })
+    setActiveId(null)
+  }
+
   function handleKeyDown(
     event: React.KeyboardEvent<HTMLTextAreaElement>,
     block: EditorBlock
@@ -139,6 +206,26 @@ export function NotesPane({ notes }: { notes: UseNotesResult }): React.JSX.Eleme
     }
   }
 
+  // Sichtbare Zeilen aus dem Klapp-Zustand ableiten: Unter einem eingeklappten
+  // Block werden alle tiefer eingerückten Folgeblöcke übersprungen. `hasChildren`
+  // ergibt sich aus der flachen Liste (nächster Block tiefer eingerückt).
+  const visibleRows: {
+    block: EditorBlock
+    index: number
+    hasChildren: boolean
+    isCollapsed: boolean
+  }[] = []
+  let hiddenBelowIndent = Infinity
+  for (let i = 0; i < blocks.length; i++) {
+    const block = blocks[i]
+    if (block.indent > hiddenBelowIndent) continue
+    hiddenBelowIndent = Infinity
+    const hasChildren = i + 1 < blocks.length && blocks[i + 1].indent > block.indent
+    const isCollapsed = hasChildren && collapsed.has(block.id)
+    visibleRows.push({ block, index: i, hasChildren, isCollapsed })
+    if (isCollapsed) hiddenBelowIndent = block.indent
+  }
+
   return (
     <div className="notes">
       <div className="notes-header">
@@ -147,16 +234,47 @@ export function NotesPane({ notes }: { notes: UseNotesResult }): React.JSX.Eleme
       </div>
 
       <div className="notes-scroll">
-        {blocks.map((block) => {
+        {visibleRows.map(({ block, index, hasChildren, isCollapsed }) => {
           const active = block.id === activeId
           const hasContent = block.content.trim().length > 0
+          const isHr = isHorizontalRule(block.content)
           return (
             <div
               key={block.id}
               className="note-block"
-              style={{ marginLeft: `${block.indent * 1.5}rem` }}
+              style={{ paddingLeft: `${block.indent * INDENT_STEP_REM}rem` }}
             >
-              <span className="note-bullet" aria-hidden="true" />
+              {/* Eine vertikale Führungslinie je Vorfahr-Ebene; über die Zeilen
+                  hinweg ergeben sie durchgehende Einrückungs-Linien (wie Logseq).
+                  Klick auf eine Linie klappt alle Unterblöcke des Elternteils. */}
+              {Array.from({ length: block.indent }, (_, lvl) => {
+                // Eltern-`id` = Linien-Kennung; alle Abschnitte derselben Linie
+                // teilen sie und werden so gemeinsam gehighlightet.
+                const parent = parentIndexAt(index, lvl)
+                const lineId = parent >= 0 ? blocks[parent].id : null
+                return (
+                  <span
+                    key={lvl}
+                    className={`note-guide${lineId && lineId === hoveredLine ? ' note-guide-hover' : ''}`}
+                    style={{ left: `calc(${lvl * INDENT_STEP_REM}rem + 3px)` }}
+                    onMouseEnter={() => setHoveredLine(lineId)}
+                    onMouseLeave={() => setHoveredLine(null)}
+                    onClick={() => toggleGuide(index, lvl)}
+                    aria-hidden="true"
+                  />
+                )
+              })}
+              <span
+                className={
+                  'note-bullet' +
+                  // Leere Blöcke und Trennlinien (`---`) zeigen keinen Punkt.
+                  (isHr || !hasContent ? ' note-bullet-hidden' : '') +
+                  (hasChildren ? ' note-bullet-parent' : '') +
+                  (isCollapsed ? ' note-bullet-collapsed' : '')
+                }
+                onClick={hasChildren ? () => toggleBlock(block.id) : undefined}
+                aria-hidden="true"
+              />
               {active ? (
                 <textarea
                   ref={textareaRef}
@@ -180,11 +298,7 @@ export function NotesPane({ notes }: { notes: UseNotesResult }): React.JSX.Eleme
                     setActiveId(block.id)
                   }}
                 >
-                  {hasContent ? (
-                    <MarkdownView>{block.content}</MarkdownView>
-                  ) : (
-                    <span className="muted">Leerer Block – zum Schreiben klicken</span>
-                  )}
+                  {hasContent ? <MarkdownView>{block.content}</MarkdownView> : null}
                 </div>
               )}
             </div>
