@@ -101,6 +101,31 @@ Projektbeschreibung & Architektur: siehe [CLAUDE.md](CLAUDE.md).
     `currentFolderId` steuert das Laden. Das Öffnen eines Projekts bleibt
     unverändert (`App.tsx` kennt keine Ordner).
 
+- **Notizen (Logseq-artig):** Eigene Tabelle `note_blocks` (Migration v4) mit
+  `page_id` (FK `ON DELETE CASCADE`), `position`, `indent`, `content` (roher
+  Markdown). Notizen hängen an der Seite (`pages`) wie der Chat – dieselbe
+  On-Demand-Anlage der Seite (`getOrCreate`), kein KI-Aufruf. Bewusste
+  Entwurfsentscheidungen:
+  - **Renderer ist die Quelle der Wahrheit:** Der Editor hält die Blockliste mit
+    eigenen, stabilen Client-`id`s und speichert verzögert (debounced) die
+    **komplette** Liste; der Handler ersetzt die Blöcke der Seite in einer
+    Transaktion (`replaceForPage`). Einfacher und robuster als pro-Block-CRUD bei
+    der überschaubaren Blockzahl pro Seite. Nach dem Speichern wird **nicht** neu
+    eingelesen – das würde nur die Fokus-/Cursor-Verfolgung stören (DB-`id`s sind
+    im UI irrelevant).
+  - **Flush beim Seitenwechsel:** `useNotes` schreibt im Effekt-Cleanup noch
+    ausstehende Änderungen der verlassenen Seite sofort (Ziel + letzter Stand via
+    Ref), bevor die neue Seite geladen wird – sonst gingen die letzten ~600 ms
+    Tippen verloren.
+  - **Umschalter statt Drittspalte:** Die Notizen **ersetzen** die rechte Spalte
+    (KI-Chat) per Knopf oben rechts, statt eine dritte Spalte zu öffnen – hält das
+    Split-Screen-Layout ruhig. Der Zustand (`rightPanel: 'ai' | 'notes'`) ist
+    reiner Renderer-State in `ProjectView`; beide Hooks (`useChat`, `useNotes`)
+    laufen weiter, damit kein Stand beim Umschalten verloren geht.
+  - **Geteilte Markdown-Darstellung:** Gerenderte Blöcke nutzen dieselbe
+    `chat-markdown`-CSS + `MarkdownView` (KaTeX) wie die KI-Texte – ein Stil,
+    inkl. Mathe, ohne Duplizierung.
+
 - **Zuletzt gelesene Seite:** Pro Projekt wird die zuletzt geöffnete Seite
   gespeichert (`projects.last_page`, Migration v2, Default `1`). Beim Wiederöffnen
   startet man dort statt auf Seite 1. Der Renderer merkt jede Seitennavigation per

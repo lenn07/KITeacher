@@ -25,6 +25,10 @@ Claude API-Key.
   kein erneuter Request (Token-Sparen).
 - **Chat pro Seite:** Rückfragen an die KI mit Seitenbild + Erklärtext als Kontext.
   Verlauf wird pro Seite gespeichert.
+- **Notizen pro Seite:** Umschalter oben rechts ersetzt die rechte Spalte durch ein
+  eigenes Notizfeld zur aktuellen Folie. Logseq-artiger Outliner: Blöcke anlegen,
+  ein-/ausrücken, als Markdown formatieren (Überschriften, Listen, Mathe). Rein lokal,
+  pro Seite gespeichert.
 - **Einstellungen:** API-Key (sicher), Modellwahl, Erklär-Niveau.
 
 ## Tech-Stack
@@ -34,7 +38,7 @@ Claude API-Key.
 | Framework | Electron + React + TypeScript + Vite                      |
 | PDF       | `pdf.js` (Anzeige + Seite→Bild für Vision)                |
 | KI        | `@anthropic-ai/sdk`, Vision, Modell konfigurierbar        |
-| Speicher  | SQLite (Projekte/Seiten/Texte/Chats) + PDFs im App-Datenordner |
+| Speicher  | SQLite (Projekte/Seiten/Texte/Chats/Notizen) + PDFs im App-Datenordner |
 | Sicherheit| API-Key im OS-Keychain via Electron `safeStorage`, nie Klartext |
 
 ## Datenmodell
@@ -43,8 +47,10 @@ Claude API-Key.
 - `Project` (id, name, folder_id, pdf_pfad, seitenanzahl, erstellt_am) – `folder_id` `null` = Wurzel
 - `Page` (id, project_id, seitennummer, erklärtext, generiert_am)
 - `ChatMessage` (id, page_id, rolle, inhalt, zeitstempel)
+- `NoteBlock` (id, page_id, position, indent, inhalt) – ein Notiz-Block einer Seite
+  (Outliner); `position` = Reihenfolge, `indent` = Verschachtelungstiefe
 
-Beziehung: `Folder` → (`Folder` | `Project`) → `Page` → `ChatMessage`.
+Beziehung: `Folder` → (`Folder` | `Project`) → `Page` → (`ChatMessage` | `NoteBlock`).
 
 ## Architektur-Prinzipien (wichtig: auf Weiterentwickelbarkeit ausgelegt)
 

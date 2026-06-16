@@ -46,6 +46,12 @@ const api: KiTeacherApi = {
     send: (input) => ipcRenderer.invoke(IpcChannels.chatSend, input),
     clear: (projectId, pageNumber) =>
       ipcRenderer.invoke(IpcChannels.chatClear, projectId, pageNumber)
+  },
+  notes: {
+    list: (projectId, pageNumber) =>
+      ipcRenderer.invoke(IpcChannels.notesList, projectId, pageNumber),
+    save: (projectId, pageNumber, blocks) =>
+      ipcRenderer.invoke(IpcChannels.notesSave, projectId, pageNumber, blocks)
   }
 }
 

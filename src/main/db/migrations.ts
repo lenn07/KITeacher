@@ -87,6 +87,29 @@ export const migrations: Migration[] = [
         CREATE INDEX idx_projects_folder ON projects(folder_id);
       `)
     }
+  },
+  {
+    version: 4,
+    name: 'notizen-bloecke-pro-seite',
+    up: (db) => {
+      // Logseq-artige Notizen pro Seite: jede Notiz ist eine Liste von Blöcken
+      // (Outliner). `position` legt die Reihenfolge fest, `indent` die
+      // Verschachtelungstiefe (0 = oberste Ebene). `content` ist roher Markdown
+      // (inkl. Mathe), der im UI gerendert wird. FK an die Seite mit ON DELETE
+      // CASCADE – Notizen verschwinden mit Projekt/Ordner.
+      db.exec(`
+        CREATE TABLE note_blocks (
+          id         INTEGER PRIMARY KEY AUTOINCREMENT,
+          page_id    INTEGER NOT NULL REFERENCES pages(id) ON DELETE CASCADE,
+          position   INTEGER NOT NULL,
+          indent     INTEGER NOT NULL DEFAULT 0,
+          content    TEXT    NOT NULL DEFAULT '',
+          created_at TEXT    NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))
+        );
+
+        CREATE INDEX idx_note_blocks_page ON note_blocks(page_id);
+      `)
+    }
   }
 ]
 
